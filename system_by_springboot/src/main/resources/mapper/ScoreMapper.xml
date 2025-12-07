@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.studentscore.mapper.ScoreMapper">
+
+    <!-- 分页查询成绩（带关联信息） -->
+    <select id="selectScorePage" resultType="com.example.studentscore.vo.ScoreVO">
+        SELECT
+            s.id,
+            COALESCE(st.student_id, '') AS student_id,
+            COALESCE(st.name, '未知') AS student_name,
+            COALESCE(tc.class_id, '') AS class_id,
+            COALESCE(tc.class_id, '') AS class_name,
+            COALESCE(c.course_id, '') AS course_code,
+            COALESCE(c.course_name, '未关联课程') AS course_name,
+            COALESCE(c.credits, 0) AS credit,
+            COALESCE(t.name, '未分配教师') AS teacher_name,
+            tc.semester,
+            s.regular_score,
+            s.midterm_score,
+            s.experiment_score,
+            s.final_exam_score,
+            s.final_score,
+            s.final_score AS score,
+            s.grade_point
+        FROM score s
+        LEFT JOIN student st ON s.student_db_id = st.id AND st.deleted = 0
+        LEFT JOIN teaching_class tc ON s.teaching_class_db_id = tc.id AND tc.deleted = 0
+        LEFT JOIN course c ON tc.course_db_id = c.id AND c.deleted = 0
+        LEFT JOIN teacher t ON tc.teacher_db_id = t.id AND t.deleted = 0
+        WHERE s.deleted = 0
+        <if test="query.studentDbId != null">
+            AND s.student_db_id = #{query.studentDbId}
+        </if>
+        <if test="query.studentId != null and query.studentId != ''">
+            AND st.student_id LIKE CONCAT('%', #{query.studentId}, '%')
+        </if>
+        <if test="query.studentName != null and query.studentName != ''">
+            AND st.name LIKE CONCAT('%', #{query.studentName}, '%')
+        </if>
+        <if test="query.courseId != null and query.courseId != ''">
+            AND c.course_id LIKE CONCAT('%', #{query.courseId}, '%')
+        </if>
+        <if test="query.courseName != null and query.courseName != ''">
+            AND c.course_name LIKE CONCAT('%', #{query.courseName}, '%')
+        </if>
+        <if test="query.classId != null and query.classId != ''">
+            AND tc.class_id LIKE CONCAT('%', #{query.classId}, '%')
+        </if>
+        <if test="query.semester != null and query.semester != ''">
+            AND tc.semester = #{query.semester}
+        </if>
+        <if test="query.minScore != null">
+            AND s.final_score >= #{query.minScore}
+        </if>
+        <if test="query.maxScore != null">
+            AND s.final_score &lt;= #{query.maxScore}
+        </if>
+        <choose>
+            <when test="query.orderBy == 'finalScore' and query.orderType == 'asc'">
+                ORDER BY s.final_score ASC
+            </when>
+            <when test="query.orderBy == 'finalScore' and query.orderType == 'desc'">
+                ORDER BY s.final_score DESC
+            </when>
+            <otherwise>
+                ORDER BY s.create_time DESC
+            </otherwise>
+        </choose>
+    </select>
+
+    <!-- 查询学生成绩列表 -->
+    <select id="selectStudentScores" resultType="com.example.studentscore.vo.ScoreVO">
+        SELECT
+            s.id,
+            COALESCE(st.student_id, '') AS student_id,
+            COALESCE(st.name, '未知') AS student_name,
+            COALESCE(tc.class_id, '') AS class_id,
+            COALESCE(tc.class_id, '') AS class_name,
+            COALESCE(c.course_id, '') AS course_code,
+            COALESCE(c.course_name, '未关联课程') AS course_name,
+            COALESCE(c.credits, 0) AS credit,
+            COALESCE(t.name, '未分配教师') AS teacher_name,
+            tc.semester,
+            s.regular_score,
+            s.midterm_score,
+            s.experiment_score,
+            s.final_exam_score,
+            s.final_score,
+            s.final_score AS score,
+            s.grade_point
+        FROM score s
+        LEFT JOIN student st ON s.student_db_id = st.id AND st.deleted = 0
+        LEFT JOIN teaching_class tc ON s.teaching_class_db_id = tc.id AND tc.deleted = 0
+        LEFT JOIN course c ON tc.course_db_id = c.id AND c.deleted = 0
+        LEFT JOIN teacher t ON tc.teacher_db_id = t.id AND t.deleted = 0
+        WHERE s.deleted = 0 AND s.student_db_id = #{studentDbId}
+        ORDER BY tc.semester DESC, c.course_name ASC
+    </select>
+
+    <!-- 查询成绩排名 -->
+    <select id="selectScoreRanking" resultType="com.example.studentscore.vo.ScoreVO">
+        SELECT
+            s.id,
+            COALESCE(st.student_id, '') AS student_id,
+            COALESCE(st.name, '未知') AS student_name,
+            COALESCE(tc.class_id, '') AS class_id,
+            COALESCE(tc.class_id, '') AS class_name,
+            COALESCE(c.course_id, '') AS course_code,
+            COALESCE(c.course_name, '未关联课程') AS course_name,
+            COALESCE(c.credits, 0) AS credit,
+            COALESCE(t.name, '未分配教师') AS teacher_name,
+            tc.semester,
+            s.regular_score,
+            s.midterm_score,
+            s.experiment_score,
+            s.final_exam_score,
+            s.final_score,
+            s.final_score AS score,
+            s.grade_point,
+            RANK() OVER (
+                <if test="query.classId != null and query.classId != ''">
+                    PARTITION BY tc.class_id
+                </if>
+                ORDER BY s.final_score DESC
+            ) AS class_rank,
+            RANK() OVER (ORDER BY s.final_score DESC) AS overall_rank
+        FROM score s
+        LEFT JOIN student st ON s.student_db_id = st.id AND st.deleted = 0
+        LEFT JOIN teaching_class tc ON s.teaching_class_db_id = tc.id AND tc.deleted = 0
+        LEFT JOIN course c ON tc.course_db_id = c.id AND c.deleted = 0
+        LEFT JOIN teacher t ON tc.teacher_db_id = t.id AND t.deleted = 0
+        WHERE s.deleted = 0 AND s.final_score IS NOT NULL
+        <if test="query.classId != null and query.classId != ''">
+            AND tc.class_id = #{query.classId}
+        </if>
+        <if test="query.courseId != null and query.courseId != ''">
+            AND c.course_id = #{query.courseId}
+        </if>
+        <if test="query.semester != null and query.semester != ''">
+            AND tc.semester = #{query.semester}
+        </if>
+        ORDER BY s.final_score DESC
+        <if test="query.pageSize != null">
+            LIMIT #{query.pageSize}
+        </if>
+    </select>
+
+    <!-- 查询课程统计 -->
+    <select id="selectCourseStatistics" resultType="com.example.studentscore.vo.CourseStatisticsVO">
+        SELECT
+            c.course_id,
+            c.course_name,
+            COUNT(DISTINCT s.student_db_id) AS student_count,
+            ROUND(AVG(s.final_score), 2) AS average_score,
+            MAX(s.final_score) AS max_score,
+            MIN(s.final_score) AS min_score,
+            SUM(CASE WHEN s.final_score >= 60 THEN 1 ELSE 0 END) AS pass_count,
+            ROUND(SUM(CASE WHEN s.final_score >= 60 THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2) AS pass_rate,
+            SUM(CASE WHEN s.final_score >= 90 THEN 1 ELSE 0 END) AS excellent_count,
+            ROUND(SUM(CASE WHEN s.final_score >= 90 THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2) AS excellent_rate
+        FROM score s
+        LEFT JOIN teaching_class tc ON s.teaching_class_db_id = tc.id AND tc.deleted = 0
+        LEFT JOIN course c ON tc.course_db_id = c.id AND c.deleted = 0
+        WHERE s.deleted = 0 AND s.final_score IS NOT NULL
+        <if test="semester != null and semester != ''">
+            AND tc.semester = #{semester}
+        </if>
+        GROUP BY c.course_id, c.course_name
+        ORDER BY average_score DESC
+    </select>
+
+</mapper>
