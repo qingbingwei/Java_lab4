@@ -19,7 +19,8 @@
       "mcp__ide__getDiagnostics",
       "Bash(find:*)",
       "Bash(sqlite3:*)",
-      "Bash(echo:*)"
+      "Bash(echo:*)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []
