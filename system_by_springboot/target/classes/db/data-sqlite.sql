@@ -19,14 +19,14 @@ INSERT OR IGNORE INTO teacher (teacher_id, name, title, department, phone, email
 ('T004', '陈教授', '教授', '软件学院', '13900139004', 'chenprof@example.com');
 
 -- 插入测试课程数据
-INSERT OR IGNORE INTO course (course_id, course_name, credits, course_type, description) VALUES
-('CS101', '高等数学', 4.0, '必修', '高等数学基础课程'),
-('CS102', 'Java程序设计', 3.0, '必修', 'Java语言程序设计'),
-('CS103', '数据结构', 4.0, '必修', '数据结构与算法'),
-('CS104', '数据库原理', 3.5, '必修', '数据库系统原理'),
-('CS105', '计算机网络', 3.0, '必修', '计算机网络原理'),
-('CS201', '软件工程', 3.0, '选修', '软件工程导论'),
-('CS202', '人工智能', 2.0, '选修', '人工智能基础');
+INSERT OR IGNORE INTO course (course_id, course_name, credits, course_type, hours, description) VALUES
+('CS101', '高等数学', 4.0, '必修', 64, '高等数学基础课程'),
+('CS102', 'Java程序设计', 3.0, '必修', 48, 'Java语言程序设计'),
+('CS103', '数据结构', 4.0, '必修', 64, '数据结构与算法'),
+('CS104', '数据库原理', 3.5, '必修', 56, '数据库系统原理'),
+('CS105', '计算机网络', 3.0, '必修', 48, '计算机网络原理'),
+('CS201', '软件工程', 3.0, '选修', 48, '软件工程导论'),
+('CS202', '人工智能', 2.0, '选修', 32, '人工智能基础');
 
 -- 插入测试教学班数据
 INSERT OR IGNORE INTO teaching_class (class_id, course_db_id, teacher_db_id, semester, capacity, current_size, schedule_time, classroom) VALUES
@@ -61,3 +61,25 @@ INSERT OR IGNORE INTO score (student_db_id, teaching_class_db_id, regular_score,
 (4, 3, 80, 78, 82, 75, 78.0, 2.8),
 (5, 2, 95, 92, 98, 90, 93.0, 4.0),
 (5, 3, 88, 85, 90, 82, 85.6, 3.5);
+
+-- 插入系统用户数据（密码统一为：123456）
+-- 密码是BCrypt加密后的哈希值
+INSERT OR IGNORE INTO sys_user (username, password, real_name, email, role, ref_id, status) VALUES
+-- 管理员账号
+('admin', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '系统管理员', 'admin@example.com', 'ADMIN', NULL, 1),
+
+-- 教师账号（对应4位教师）
+('T001', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '张教授', 'zhangprof@example.com', 'TEACHER', 1, 1),
+('T002', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '李副教授', 'liprof@example.com', 'TEACHER', 2, 1),
+('T003', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '王讲师', 'wanglect@example.com', 'TEACHER', 3, 1),
+('T004', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '陈教授', 'chenprof@example.com', 'TEACHER', 4, 1),
+
+-- 学生账号（对应8位学生）
+('2021001001', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '张三', 'zhangsan@example.com', 'STUDENT', 1, 1),
+('2021001002', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '李四', 'lisi@example.com', 'STUDENT', 2, 1),
+('2021001003', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '王五', 'wangwu@example.com', 'STUDENT', 3, 1),
+('2021001004', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '赵六', 'zhaoliu@example.com', 'STUDENT', 4, 1),
+('2021001005', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '钱七', 'qianqi@example.com', 'STUDENT', 5, 1),
+('2022001001', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '孙八', 'sunba@example.com', 'STUDENT', 6, 1),
+('2022001002', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '周九', 'zhoujiu@example.com', 'STUDENT', 7, 1),
+('2022001003', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '吴十', 'wushi@example.com', 'STUDENT', 8, 1);
