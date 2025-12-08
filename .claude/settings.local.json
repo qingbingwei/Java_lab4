@@ -18,7 +18,8 @@
       "Bash(tree:*)",
       "mcp__ide__getDiagnostics",
       "Bash(find:*)",
-      "Bash(sqlite3:*)"
+      "Bash(sqlite3:*)",
+      "Bash(echo:*)"
     ],
     "deny": [],
     "ask": []
