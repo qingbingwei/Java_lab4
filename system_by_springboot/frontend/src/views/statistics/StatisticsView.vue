@@ -84,10 +84,10 @@ const loadOverview = async () => {
 const loadDistribution = async () => {
   const res = await statisticsApi.getScoreDistribution()
   const data = res.data || {}
-  
+
   const chart = echarts.init(distributionChart.value)
   charts.push(chart)
-  
+
   chart.setOption({
     tooltip: { trigger: 'item' },
     legend: { bottom: 0 },
