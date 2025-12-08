@@ -14,7 +14,9 @@
       "Bash(mkdir -p /Users/bytedance/Downloads/Java_lab4/system_by_springboot/src/main/resources/mapper)",
       "Bash(mkdir -p /Users/bytedance/Downloads/Java_lab4/system_by_springboot/src/test/java/com/example/student)",
       "Bash(brew install maven)",
-      "Bash(mvn:*)"
+      "Bash(mvn:*)",
+      "Bash(tree:*)",
+      "mcp__ide__getDiagnostics"
     ],
     "deny": [],
     "ask": []

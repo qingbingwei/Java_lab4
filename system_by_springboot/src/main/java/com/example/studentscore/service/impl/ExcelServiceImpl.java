@@ -28,6 +28,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
+
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -284,11 +286,11 @@ public class ExcelServiceImpl implements ExcelService {
             example.setCourseName("高等数学（可不填）");
             example.setTeacherName("张明（可不填）");
             example.setSemester("2023-2024-1（可不填）");
-            example.setRegularScore(85);
-            example.setMidtermScore(80);
-            example.setExperimentScore(88);
-            example.setFinalExamScore(82);
-            example.setFinalScore(83.2);
+            example.setRegularScore(new BigDecimal("85"));
+            example.setMidtermScore(new BigDecimal("80"));
+            example.setExperimentScore(new BigDecimal("88"));
+            example.setFinalExamScore(new BigDecimal("82"));
+            example.setFinalScore(new BigDecimal("83.20"));
 
             EasyExcel.write(response.getOutputStream(), ScoreExcel.class)
                     .registerWriteHandler(new LongestMatchColumnWidthStyleStrategy())
