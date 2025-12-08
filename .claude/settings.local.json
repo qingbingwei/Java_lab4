@@ -16,7 +16,9 @@
       "Bash(brew install maven)",
       "Bash(mvn:*)",
       "Bash(tree:*)",
-      "mcp__ide__getDiagnostics"
+      "mcp__ide__getDiagnostics",
+      "Bash(find:*)",
+      "Bash(sqlite3:*)"
     ],
     "deny": [],
     "ask": []
