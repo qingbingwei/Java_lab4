@@ -62,24 +62,10 @@ INSERT OR IGNORE INTO score (student_db_id, teaching_class_db_id, regular_score,
 (5, 2, 95, 92, 98, 90, 93.0, 4.0),
 (5, 3, 88, 85, 90, 82, 85.6, 3.5);
 
--- 插入系统用户数据（密码统一为：123456）
--- 密码是BCrypt加密后的哈希值
-INSERT OR IGNORE INTO sys_user (username, password, real_name, email, role, ref_id, status) VALUES
--- 管理员账号
-('admin', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '系统管理员', 'admin@example.com', 'ADMIN', NULL, 1),
-
--- 教师账号（对应4位教师）
-('T001', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '张教授', 'zhangprof@example.com', 'TEACHER', 1, 1),
-('T002', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '李副教授', 'liprof@example.com', 'TEACHER', 2, 1),
-('T003', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '王讲师', 'wanglect@example.com', 'TEACHER', 3, 1),
-('T004', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '陈教授', 'chenprof@example.com', 'TEACHER', 4, 1),
-
--- 学生账号（对应8位学生）
-('2021001001', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '张三', 'zhangsan@example.com', 'STUDENT', 1, 1),
-('2021001002', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '李四', 'lisi@example.com', 'STUDENT', 2, 1),
-('2021001003', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '王五', 'wangwu@example.com', 'STUDENT', 3, 1),
-('2021001004', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '赵六', 'zhaoliu@example.com', 'STUDENT', 4, 1),
-('2021001005', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '钱七', 'qianqi@example.com', 'STUDENT', 5, 1),
-('2022001001', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '孙八', 'sunba@example.com', 'STUDENT', 6, 1),
-('2022001002', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '周九', 'zhoujiu@example.com', 'STUDENT', 7, 1),
-('2022001003', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '吴十', 'wushi@example.com', 'STUDENT', 8, 1);
+-- 注意：用户数据通过 AuthService.initDefaultUsers() 方法初始化
+-- 这样可以确保密码使用正确的加密方式（SHA-256 + Salt）
+--
+-- 默认账号密码：
+-- 管理员: admin / 123456
+-- 教师: T001~T004 / 123456
+-- 学生: 2021001001~2022001003 / 123456
