@@ -2,6 +2,7 @@ package com.example.studentscore.service.impl;
 
 import com.example.studentscore.entity.Score;
 import com.example.studentscore.service.*;
+import com.example.studentscore.vo.ClassStatisticsVO;
 import com.example.studentscore.vo.CourseStatisticsVO;
 import com.example.studentscore.vo.StatisticsVO;
 import lombok.RequiredArgsConstructor;
@@ -89,42 +90,31 @@ public class StatisticsServiceImpl implements StatisticsService {
 
     @Override
     public Map<String, Object> getScoreDistribution(String semester, String courseId) {
-        Map<String, Object> result = new HashMap<>();
-        
         // 获取成绩列表并按分数段统计
         List<Score> scores = scoreService.list();
         List<Score> filtered = scores.stream()
                 .filter(s -> s.getFinalScore() != null)
                 .toList();
-        
-        // 分数段统计
-        Map<String, Long> distribution = new LinkedHashMap<>();
-        distribution.put("优秀(90-100)", filtered.stream().filter(s -> s.getFinalScore().doubleValue() >= 90).count());
-        distribution.put("良好(80-89)", filtered.stream().filter(s -> s.getFinalScore().doubleValue() >= 80 && s.getFinalScore().doubleValue() < 90).count());
-        distribution.put("中等(70-79)", filtered.stream().filter(s -> s.getFinalScore().doubleValue() >= 70 && s.getFinalScore().doubleValue() < 80).count());
-        distribution.put("及格(60-69)", filtered.stream().filter(s -> s.getFinalScore().doubleValue() >= 60 && s.getFinalScore().doubleValue() < 70).count());
-        distribution.put("不及格(<60)", filtered.stream().filter(s -> s.getFinalScore().doubleValue() < 60).count());
-        
-        result.put("distribution", distribution);
-        result.put("labels", distribution.keySet());
-        result.put("values", distribution.values());
-        
-        return result;
+
+        // 分数段统计 - 使用前端期望的key格式
+        Map<String, Object> distribution = new LinkedHashMap<>();
+        distribution.put("90-100", filtered.stream().filter(s -> s.getFinalScore().doubleValue() >= 90).count());
+        distribution.put("80-89", filtered.stream().filter(s -> s.getFinalScore().doubleValue() >= 80 && s.getFinalScore().doubleValue() < 90).count());
+        distribution.put("70-79", filtered.stream().filter(s -> s.getFinalScore().doubleValue() >= 70 && s.getFinalScore().doubleValue() < 80).count());
+        distribution.put("60-69", filtered.stream().filter(s -> s.getFinalScore().doubleValue() >= 60 && s.getFinalScore().doubleValue() < 70).count());
+        distribution.put("0-59", filtered.stream().filter(s -> s.getFinalScore().doubleValue() < 60).count());
+
+        return distribution;
     }
 
     @Override
     public Map<String, Object> getCourseAverageScores(String semester) {
-        Map<String, Object> result = new HashMap<>();
-        
         List<CourseStatisticsVO> courseStats = scoreService.getCourseStatistics(semester);
-        
-        List<String> labels = courseStats.stream().map(CourseStatisticsVO::getCourseName).toList();
-        List<BigDecimal> values = courseStats.stream().map(CourseStatisticsVO::getAverageScore).toList();
-        
-        result.put("labels", labels);
-        result.put("values", values);
-        result.put("details", courseStats);
-        
+
+        // 直接返回课程统计列表，前端会自己提取需要的字段
+        Map<String, Object> result = new HashMap<>();
+        result.put("data", courseStats);
+
         return result;
     }
 
@@ -141,18 +131,76 @@ public class StatisticsServiceImpl implements StatisticsService {
 
     @Override
     public Map<String, Object> getClassComparison(String courseId) {
+        // 获取所有成绩数据
+        List<Score> allScores = scoreService.list();
+
+        // 按学生ID分组获取学生信息
+        List<Long> studentIds = allScores.stream()
+                .map(Score::getStudentDbId)
+                .distinct()
+                .toList();
+
+        Map<Long, String> studentClassMap = studentService.listByIds(studentIds).stream()
+                .collect(HashMap::new, (m, s) -> m.put(s.getId(), s.getClassName()), HashMap::putAll);
+
+        // 按班级分组统计
+        Map<String, List<Score>> scoresByClass = allScores.stream()
+                .filter(s -> s.getFinalScore() != null && studentClassMap.containsKey(s.getStudentDbId()))
+                .collect(java.util.stream.Collectors.groupingBy(
+                        s -> studentClassMap.get(s.getStudentDbId())
+                ));
+
+        // 计算每个班级的统计数据
+        List<ClassStatisticsVO> classStats = new ArrayList<>();
+        for (Map.Entry<String, List<Score>> entry : scoresByClass.entrySet()) {
+            String className = entry.getKey();
+            List<Score> scores = entry.getValue();
+
+            if (scores.isEmpty()) continue;
+
+            ClassStatisticsVO vo = new ClassStatisticsVO();
+            vo.setClassName(className);
+            vo.setStudentCount((long) scores.size());
+
+            // 平均分
+            double avg = scores.stream()
+                    .mapToDouble(s -> s.getFinalScore().doubleValue())
+                    .average()
+                    .orElse(0);
+            vo.setAvgScore(BigDecimal.valueOf(avg).setScale(2, RoundingMode.HALF_UP));
+
+            // 最高分
+            double max = scores.stream()
+                    .mapToDouble(s -> s.getFinalScore().doubleValue())
+                    .max()
+                    .orElse(0);
+            vo.setMaxScore(BigDecimal.valueOf(max).setScale(2, RoundingMode.HALF_UP));
+
+            // 最低分
+            double min = scores.stream()
+                    .mapToDouble(s -> s.getFinalScore().doubleValue())
+                    .min()
+                    .orElse(0);
+            vo.setMinScore(BigDecimal.valueOf(min).setScale(2, RoundingMode.HALF_UP));
+
+            // 及格人数和及格率
+            long passCount = scores.stream()
+                    .filter(s -> s.getFinalScore().doubleValue() >= 60)
+                    .count();
+            vo.setPassCount(passCount);
+
+            double passRate = passCount * 100.0 / scores.size();
+            vo.setPassRate(BigDecimal.valueOf(passRate).setScale(2, RoundingMode.HALF_UP));
+
+            classStats.add(vo);
+        }
+
+        // 按班级名称排序
+        classStats.sort(Comparator.comparing(ClassStatisticsVO::getClassName));
+
         Map<String, Object> result = new HashMap<>();
-        
-        List<CourseStatisticsVO> courseStats = scoreService.getCourseStatistics(null);
-        
-        List<String> labels = courseStats.stream().map(CourseStatisticsVO::getCourseName).toList();
-        List<BigDecimal> avgScores = courseStats.stream().map(CourseStatisticsVO::getAverageScore).toList();
-        List<BigDecimal> passRates = courseStats.stream().map(CourseStatisticsVO::getPassRate).toList();
-        
-        result.put("labels", labels);
-        result.put("avgScores", avgScores);
-        result.put("passRates", passRates);
-        
+        result.put("data", classStats);
+
         return result;
     }
 }
