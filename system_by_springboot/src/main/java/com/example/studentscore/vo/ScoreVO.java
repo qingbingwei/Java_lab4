@@ -41,7 +41,7 @@ public class ScoreVO implements Serializable {
     private String courseName;
 
     @Schema(description = "学分")
-    private BigDecimal credit;
+    private BigDecimal credits;
 
     @Schema(description = "教师姓名")
     private String teacherName;
@@ -50,16 +50,16 @@ public class ScoreVO implements Serializable {
     private String semester;
 
     @Schema(description = "平时成绩")
-    private Integer regularScore;
+    private BigDecimal regularScore;
 
     @Schema(description = "期中成绩")
-    private Integer midtermScore;
+    private BigDecimal midtermScore;
 
     @Schema(description = "实验成绩")
-    private Integer experimentScore;
+    private BigDecimal experimentScore;
 
     @Schema(description = "期末成绩")
-    private Integer finalExamScore;
+    private BigDecimal finalExamScore;
 
     @Schema(description = "综合成绩")
     private BigDecimal finalScore;

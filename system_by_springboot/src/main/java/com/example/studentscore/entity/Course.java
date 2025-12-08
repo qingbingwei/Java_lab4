@@ -6,6 +6,7 @@ import lombok.Data;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
@@ -43,8 +44,8 @@ public class Course implements Serializable {
     /**
      * 学分
      */
-    @Schema(description = "学分", example = "4")
-    private Integer credits;
+    @Schema(description = "学分", example = "4.0")
+    private BigDecimal credits;
 
     /**
      * 课程类型: REQUIRED-必修, ELECTIVE-选修

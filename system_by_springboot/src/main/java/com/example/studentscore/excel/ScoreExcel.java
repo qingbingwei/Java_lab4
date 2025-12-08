@@ -5,6 +5,8 @@ import com.alibaba.excel.annotation.write.style.ColumnWidth;
 import com.alibaba.excel.annotation.write.style.HeadRowHeight;
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 /**
  * 成绩Excel导入导出模型
  */
@@ -36,21 +38,21 @@ public class ScoreExcel {
 
     @ExcelProperty("平时成绩")
     @ColumnWidth(12)
-    private Integer regularScore;
+    private BigDecimal regularScore;
 
     @ExcelProperty("期中成绩")
     @ColumnWidth(12)
-    private Integer midtermScore;
+    private BigDecimal midtermScore;
 
     @ExcelProperty("实验成绩")
     @ColumnWidth(12)
-    private Integer experimentScore;
+    private BigDecimal experimentScore;
 
     @ExcelProperty("期末成绩")
     @ColumnWidth(12)
-    private Integer finalExamScore;
+    private BigDecimal finalExamScore;
 
     @ExcelProperty("综合成绩")
     @ColumnWidth(12)
-    private Double finalScore;
+    private BigDecimal finalScore;
 }
