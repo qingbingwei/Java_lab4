@@ -72,9 +72,13 @@ CREATE TABLE IF NOT EXISTS enrollment (
     update_time DATETIME DEFAULT CURRENT_TIMESTAMP,
     deleted INTEGER DEFAULT 0,
     FOREIGN KEY (student_db_id) REFERENCES student(id),
-    FOREIGN KEY (teaching_class_db_id) REFERENCES teaching_class(id),
-    UNIQUE (student_db_id, teaching_class_db_id)
+    FOREIGN KEY (teaching_class_db_id) REFERENCES teaching_class(id)
 );
+
+-- 为未删除的选课记录创建唯一索引（支持重新选课）
+CREATE UNIQUE INDEX IF NOT EXISTS idx_enrollment_unique
+ON enrollment(student_db_id, teaching_class_db_id)
+WHERE deleted = 0;
 
 -- 成绩表
 CREATE TABLE IF NOT EXISTS score (

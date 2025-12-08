@@ -310,17 +310,17 @@ export const enrollmentApi = {
   // 学生选课
   enroll(data) {
     return request({
-      url: '/enrollments/enroll',
+      url: '/enrollments',
       method: 'post',
       data
     })
   },
   // 学生退课
-  drop(data) {
+  drop(params) {
     return request({
-      url: '/enrollments/drop',
-      method: 'post',
-      data
+      url: '/enrollments',
+      method: 'delete',
+      params
     })
   },
   // 退选（通过选课ID）
