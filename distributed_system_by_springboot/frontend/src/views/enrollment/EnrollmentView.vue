@@ -90,7 +90,6 @@ import { useUserStore } from '@/stores/user'
 import { studentApi, teachingClassApi, enrollmentApi } from '@/api'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { List } from '@element-plus/icons-vue'
-import { useUserStore } from '@/stores/user'
 
 const userStore = useUserStore()
 const isTeacher = computed(() => userStore.isTeacher)
@@ -109,8 +108,8 @@ const availableClasses = computed(() => {
   return classList.value.filter(c => !enrolledIds.has(c.id))
 })
 
-// 判断是否为学生角色
-const isStudent = computed(() => userStore.user?.role === 'STUDENT')
+// 判断是否为学生角色 - 直接使用 userStore 的 isStudent 计算属性
+const isStudent = computed(() => userStore.isStudent)
 
 const loadStudents = async () => {
   if (isStudent.value) {
