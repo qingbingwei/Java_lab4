@@ -40,7 +40,7 @@ mybatis-plus:
   type-aliases-package: com.example.studentscore.entity
   global-config:
     db-config:
-      id-type: auto
+      id-type: none
       logic-delete-field: deleted
       logic-delete-value: 1
       logic-not-delete-value: 0
@@ -49,6 +49,8 @@ mybatis-plus:
     map-underscore-to-camel-case: true
     cache-enabled: false
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    use-generated-keys: false
+    jdbc-type-for-null: 'null'
 
 # Knife4j配置
 springdoc:

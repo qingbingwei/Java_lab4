@@ -28,7 +28,7 @@ public interface ExcelService {
     /**
      * 导出成绩数据
      */
-    void exportScores(HttpServletResponse response, Long teachingClassId, String semester);
+    void exportScores(HttpServletResponse response, Long teachingClassId, String semester, Long studentDbId);
 
     /**
      * 导入成绩数据

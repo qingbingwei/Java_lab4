@@ -33,9 +33,9 @@ public interface ScoreService extends IService<Score> {
     Score getByStudentAndClass(Long studentDbId, Long teachingClassDbId);
 
     /**
-     * 录入成绩
+     * 录入成绩，返回成绩ID
      */
-    boolean addScore(ScoreDTO dto);
+    Long addScore(ScoreDTO dto);
 
     /**
      * 更新成绩

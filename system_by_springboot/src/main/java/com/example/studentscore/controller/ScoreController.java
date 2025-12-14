@@ -59,7 +59,7 @@ public class ScoreController {
 
     @Operation(summary = "录入成绩")
     @PostMapping
-    public Result<Boolean> addScore(@Valid @RequestBody ScoreDTO dto) {
+    public Result<Long> addScore(@Valid @RequestBody ScoreDTO dto) {
         return Result.success("录入成功", scoreService.addScore(dto));
     }
 

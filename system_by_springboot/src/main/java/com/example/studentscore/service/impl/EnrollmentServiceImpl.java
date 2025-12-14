@@ -52,7 +52,7 @@ public class EnrollmentServiceImpl extends ServiceImpl<EnrollmentMapper, Enrollm
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean enroll(EnrollmentDTO dto) {
-        // 检查是否已选课
+        // 检查是否已选课（未删除的记录）
         if (isEnrolled(dto.getStudentDbId(), dto.getTeachingClassDbId())) {
             throw new BusinessException(ResultCode.ALREADY_EXISTS, "已选择该课程");
         }
@@ -66,13 +66,27 @@ public class EnrollmentServiceImpl extends ServiceImpl<EnrollmentMapper, Enrollm
             throw new BusinessException("教学班已满");
         }
         
-        Enrollment enrollment = new Enrollment();
-        enrollment.setStudentDbId(dto.getStudentDbId());
-        enrollment.setTeachingClassDbId(dto.getTeachingClassDbId());
-        enrollment.setEnrollTime(LocalDateTime.now());
-        // status 字段不在数据库中，不设置
+        // 检查是否存在已删除的选课记录（退课后重新选课的情况）
+        // 使用原生 SQL 绕过 @TableLogic 的自动过滤
+        Enrollment deletedEnrollment = baseMapper.selectDeletedEnrollment(
+            dto.getStudentDbId(), dto.getTeachingClassDbId());
         
-        boolean result = save(enrollment);
+        boolean result;
+        if (deletedEnrollment != null) {
+            // 恢复已删除的记录（使用原生 SQL 绕过逻辑删除过滤）
+            result = baseMapper.restoreEnrollment(
+                deletedEnrollment.getId(), 
+                LocalDateTime.now(), 
+                LocalDateTime.now()) > 0;
+        } else {
+            // 创建新记录
+            Enrollment enrollment = new Enrollment();
+            enrollment.setStudentDbId(dto.getStudentDbId());
+            enrollment.setTeachingClassDbId(dto.getTeachingClassDbId());
+            enrollment.setEnrollTime(LocalDateTime.now());
+            result = save(enrollment);
+        }
+        
         if (result) {
             // 更新教学班人数
             teachingClassService.updateClassSize(dto.getTeachingClassDbId());
@@ -113,11 +127,12 @@ public class EnrollmentServiceImpl extends ServiceImpl<EnrollmentMapper, Enrollm
 
     @Override
     public boolean isEnrolled(Long studentDbId, Long teachingClassDbId) {
-        // 逻辑删除由 MyBatis-Plus 自动处理
-        return lambdaQuery()
+        // 逻辑删除由 MyBatis-Plus 自动处理，已删除的记录不会被查询到
+        Long count = lambdaQuery()
                 .eq(Enrollment::getStudentDbId, studentDbId)
                 .eq(Enrollment::getTeachingClassDbId, teachingClassDbId)
-                .exists();
+                .count();
+        return count != null && count > 0;
     }
 
     @Override

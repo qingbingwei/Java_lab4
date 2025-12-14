@@ -5,8 +5,8 @@
       <span>首页概览</span>
     </div>
 
-    <!-- 统计卡片 -->
-    <el-row :gutter="24" class="stat-cards">
+    <!-- 统计卡片 - 学生角色只显示自己相关的数据 -->
+    <el-row v-if="!userStore.isStudent" :gutter="24" class="stat-cards">
       <el-col :xs="24" :sm="12" :md="6">
         <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)">
           <div class="stat-content">
@@ -48,6 +48,53 @@
             <div class="stat-desc">活跃班级</div>
           </div>
           <el-icon class="stat-icon"><School /></el-icon>
+        </div>
+      </el-col>
+    </el-row>
+
+    <!-- 学生角色专用统计卡片 -->
+    <el-row v-else :gutter="24" class="stat-cards">
+      <el-col :xs="24" :sm="12" :md="6">
+        <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)">
+          <div class="stat-content">
+            <div class="stat-label">我的课程</div>
+            <div class="stat-value">{{ studentStats.courseCount || 0 }}</div>
+            <div class="stat-desc">已选课程数</div>
+          </div>
+          <el-icon class="stat-icon"><Reading /></el-icon>
+        </div>
+      </el-col>
+
+      <el-col :xs="24" :sm="12" :md="6">
+        <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%)">
+          <div class="stat-content">
+            <div class="stat-label">平均成绩</div>
+            <div class="stat-value">{{ studentStats.avgScore?.toFixed(1) || '-' }}</div>
+            <div class="stat-desc">所有课程平均分</div>
+          </div>
+          <el-icon class="stat-icon"><TrendCharts /></el-icon>
+        </div>
+      </el-col>
+
+      <el-col :xs="24" :sm="12" :md="6">
+        <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)">
+          <div class="stat-content">
+            <div class="stat-label">及格课程</div>
+            <div class="stat-value">{{ studentStats.passCount || 0 }}</div>
+            <div class="stat-desc">成绩≥60分</div>
+          </div>
+          <el-icon class="stat-icon"><CircleCheck /></el-icon>
+        </div>
+      </el-col>
+
+      <el-col :xs="24" :sm="12" :md="6">
+        <div class="stat-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)">
+          <div class="stat-content">
+            <div class="stat-label">优秀课程</div>
+            <div class="stat-value">{{ studentStats.excellentCount || 0 }}</div>
+            <div class="stat-desc">成绩≥90分</div>
+          </div>
+          <el-icon class="stat-icon"><Medal /></el-icon>
         </div>
       </el-col>
     </el-row>
@@ -169,10 +216,11 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useSystemStore } from '@/stores/system'
 import { useUserStore } from '@/stores/user'
+import { scoreApi, enrollmentApi } from '@/api'
 import {
   DataLine,
   User,
@@ -181,12 +229,59 @@ import {
   School,
   Grid,
   InfoFilled,
-  DocumentChecked
+  DocumentChecked,
+  TrendCharts,
+  CircleCheck,
+  Medal
 } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const systemStore = useSystemStore()
 const userStore = useUserStore()
+
+// 学生专属统计数据
+const studentStats = ref({
+  courseCount: 0,
+  avgScore: 0,
+  passCount: 0,
+  excellentCount: 0
+})
+
+// 加载学生统计数据
+const loadStudentStats = async () => {
+  if (userStore.isStudent) {
+    try {
+      // 获取学生选课数量
+      const enrollRes = await enrollmentApi.getStudentEnrollments(userStore.refId)
+      studentStats.value.courseCount = enrollRes.data?.length || 0
+
+      // 获取学生成绩统计
+      const scoreRes = await scoreApi.getPage({
+        current: 1,
+        size: 1000,
+        studentDbId: userStore.refId
+      })
+      const scores = scoreRes.data?.records || []
+      
+      if (scores.length > 0) {
+        // 计算平均分
+        const validScores = scores.filter(s => s.finalScore != null)
+        if (validScores.length > 0) {
+          const sum = validScores.reduce((acc, s) => acc + s.finalScore, 0)
+          studentStats.value.avgScore = sum / validScores.length
+          studentStats.value.passCount = validScores.filter(s => s.finalScore >= 60).length
+          studentStats.value.excellentCount = validScores.filter(s => s.finalScore >= 90).length
+        }
+      }
+    } catch (error) {
+      console.error('加载学生统计数据失败:', error)
+    }
+  }
+}
+
+onMounted(() => {
+  loadStudentStats()
+})
 
 // 根据角色过滤快捷入口
 const allQuickAccess = [

@@ -169,7 +169,11 @@ const handleSubmit = async () => {
   try {
     await formRef.value.validate()
     if (isEdit.value) await teachingClassApi.update(form.id, form)
-    else await teachingClassApi.create(form)
+    else {
+      // 新增时，创建一个不包含id的副本
+      const { id, ...formData } = form
+      await teachingClassApi.create(formData)
+    }
     ElMessage.success(isEdit.value ? '更新成功' : '新增成功')
     dialogVisible.value = false
     loadData()

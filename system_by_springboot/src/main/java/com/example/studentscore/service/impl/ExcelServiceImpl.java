@@ -32,10 +32,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -148,16 +145,18 @@ public class ExcelServiceImpl implements ExcelService {
     }
 
     @Override
-    public void exportScores(HttpServletResponse response, Long teachingClassId, String semester) {
+    public void exportScores(HttpServletResponse response, Long teachingClassId, String semester, Long studentDbId) {
         try {
             // 查询成绩数据并关联其他信息
-            List<Score> scores;
+            LambdaQueryWrapper<Score> wrapper = new LambdaQueryWrapper<>();
             if (teachingClassId != null) {
-                scores = scoreMapper.selectList(
-                        new LambdaQueryWrapper<Score>().eq(Score::getTeachingClassDbId, teachingClassId));
-            } else {
-                scores = scoreMapper.selectList(null);
+                wrapper.eq(Score::getTeachingClassDbId, teachingClassId);
             }
+            // 如果指定了学生ID（学生角色），则只查询该学生的成绩
+            if (studentDbId != null) {
+                wrapper.eq(Score::getStudentDbId, studentDbId);
+            }
+            List<Score> scores = scoreMapper.selectList(wrapper);
 
             // 获取关联数据
             Map<Long, Student> studentMap = studentMapper.selectList(null).stream()
@@ -169,8 +168,15 @@ public class ExcelServiceImpl implements ExcelService {
             Map<Long, Teacher> teacherMap = teacherMapper.selectList(null).stream()
                     .collect(Collectors.toMap(Teacher::getId, t -> t));
 
-            // 转换为Excel对象
-            List<ScoreExcel> excelList = scores.stream().map(score -> {
+            // 转换为Excel对象 - 使用Set去重避免重复数据
+            Set<String> processedKeys = new HashSet<>();
+            List<ScoreExcel> excelList = scores.stream()
+                    .filter(score -> {
+                        // 使用学生ID+教学班ID作为唯一键去重
+                        String key = score.getStudentDbId() + "_" + score.getTeachingClassDbId();
+                        return processedKeys.add(key);
+                    })
+                    .map(score -> {
                 ScoreExcel excel = new ScoreExcel();
                 BeanUtil.copyProperties(score, excel);
                 

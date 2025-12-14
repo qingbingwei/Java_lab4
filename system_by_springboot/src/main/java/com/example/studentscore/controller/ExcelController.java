@@ -54,8 +54,9 @@ public class ExcelController {
     public void exportScores(
             HttpServletResponse response,
             @Parameter(description = "教学班ID") @RequestParam(required = false) Long teachingClassId,
-            @Parameter(description = "学期") @RequestParam(required = false) String semester) {
-        excelService.exportScores(response, teachingClassId, semester);
+            @Parameter(description = "学期") @RequestParam(required = false) String semester,
+            @Parameter(description = "学生数据库ID（学生角色专用）") @RequestParam(required = false) Long studentDbId) {
+        excelService.exportScores(response, teachingClassId, semester, studentDbId);
     }
 
     @Operation(summary = "导入成绩数据")

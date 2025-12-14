@@ -25,7 +25,7 @@ public class Score implements Serializable {
     /**
      * 主键ID
      */
-    @TableId(value = "id", type = IdType.ASSIGN_ID)
+    @TableId(value = "id", type = IdType.NONE)
     @Schema(description = "主键ID")
     private Long id;
 

@@ -88,6 +88,7 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
         
         Student student = new Student();
         BeanUtil.copyProperties(dto, student);
+        student.setId(null); // 确保新增时ID为null，让数据库自动生成
         return save(student);
     }
 

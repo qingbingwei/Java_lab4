@@ -126,6 +126,7 @@ const loadStudents = async () => {
 const handleSave = async (row) => {
   try {
     const data = {
+      id: row.scoreId,
       studentDbId: row.studentDbId,
       teachingClassDbId: row.teachingClassDbId,
       regularScore: row.regularScore,
@@ -133,21 +134,26 @@ const handleSave = async (row) => {
       experimentScore: row.experimentScore,
       finalExamScore: row.finalExamScore
     }
+    
+    let res
     if (row.scoreId) {
-      await scoreApi.update(row.scoreId, data)
+      // 更新现有成绩
+      res = await scoreApi.update(row.scoreId, data)
     } else {
-      const res = await scoreApi.create(data)
-      row.scoreId = res.data?.id
+      // 创建新成绩
+      res = await scoreApi.create(data)
+      // 保存返回的ID，下次就是更新操作
+      if (res.data) {
+        row.scoreId = res.data
+      }
     }
-    // 计算综合成绩
-    const r = row.regularScore || 0
-    const m = row.midtermScore || 0
-    const e = row.experimentScore || 0
-    const f = row.finalExamScore || 0
-    row.finalScore = r * 0.2 + m * 0.2 + e * 0.2 + f * 0.4
+    
+    // 重新加载数据以获取最新的综合成绩
+    await loadStudents()
     ElMessage.success('保存成功')
   } catch (error) {
     console.error('保存失败:', error)
+    ElMessage.error('保存失败：' + (error.response?.data?.message || error.message))
   }
 }
 

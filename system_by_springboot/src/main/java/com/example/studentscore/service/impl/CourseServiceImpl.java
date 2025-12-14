@@ -64,6 +64,7 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
         
         Course course = new Course();
         BeanUtil.copyProperties(dto, course);
+        course.setId(null); // 确保新增时ID为null，让数据库自动生成
         return save(course);
     }
 
