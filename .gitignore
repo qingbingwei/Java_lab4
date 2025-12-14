@@ -1,0 +1,43 @@
+# Java
+*.class
+*.jar
+*.war
+*.ear
+target/
+*.iml
+.idea/
+*.log
+
+# Maven
+.mvn/
+mvnw
+mvnw.cmd
+
+# Frontend
+node_modules/
+dist/
+.vscode/
+*.local
+
+# Database
+*.db
+*.db-journal
+data/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build outputs
+bin/
+build/
+out/
+uploads/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath

@@ -15,19 +15,19 @@
       </el-col>
       <el-col :xs="12" :sm="6">
         <el-card shadow="hover" class="stat-card">
-          <div class="stat-value">{{ overview.avgScore?.toFixed(1) || 0 }}</div>
+          <div class="stat-value">{{ parseFloat(overview.averageScore || 0).toFixed(1) }}</div>
           <div class="stat-label">平均分</div>
         </el-card>
       </el-col>
       <el-col :xs="12" :sm="6">
         <el-card shadow="hover" class="stat-card">
-          <div class="stat-value">{{ overview.passRate?.toFixed(1) || 0 }}%</div>
+          <div class="stat-value">{{ parseFloat(overview.passRate || 0).toFixed(1) }}%</div>
           <div class="stat-label">及格率</div>
         </el-card>
       </el-col>
       <el-col :xs="12" :sm="6">
         <el-card shadow="hover" class="stat-card">
-          <div class="stat-value">{{ overview.excellentRate?.toFixed(1) || 0 }}%</div>
+          <div class="stat-value">{{ parseFloat(overview.excellentRate || 0).toFixed(1) }}%</div>
           <div class="stat-label">优秀率</div>
         </el-card>
       </el-col>
@@ -89,11 +89,16 @@ const loadOverview = async () => {
 
 const loadDistribution = async () => {
   const res = await statisticsApi.getScoreDistribution()
+<<<<<<< HEAD
   const data = res.data?.distribution || {}
   
+=======
+  const data = res.data || {}
+
+>>>>>>> eaf7128358a106ff42be47185efe559cc016247c
   const chart = echarts.init(distributionChart.value)
   charts.push(chart)
-  
+
   chart.setOption({
     tooltip: { trigger: 'item' },
     legend: { bottom: 0 },
@@ -113,11 +118,16 @@ const loadDistribution = async () => {
 
 const loadCourseAverage = async () => {
   const res = await statisticsApi.getCourseAverage()
+<<<<<<< HEAD
   const data = res.data?.details || []
   
+=======
+  const data = res.data?.data || []
+
+>>>>>>> eaf7128358a106ff42be47185efe559cc016247c
   const chart = echarts.init(courseChart.value)
   charts.push(chart)
-  
+
   chart.setOption({
     tooltip: { trigger: 'axis' },
     xAxis: {
@@ -128,7 +138,11 @@ const loadCourseAverage = async () => {
     yAxis: { type: 'value', min: 0, max: 100 },
     series: [{
       type: 'bar',
+<<<<<<< HEAD
       data: data.map(d => d.averageScore || 0),
+=======
+      data: data.map(d => d.averageScore?.toFixed(1)),
+>>>>>>> eaf7128358a106ff42be47185efe559cc016247c
       itemStyle: {
         color: (params) => {
           const value = params.value
@@ -144,18 +158,24 @@ const loadCourseAverage = async () => {
 
 const loadClassComparison = async () => {
   const res = await statisticsApi.getClassComparison()
+<<<<<<< HEAD
   const labels = res.data?.labels || []
   const avgScores = res.data?.avgScores || []
   const passRates = res.data?.passRates || []
   
+=======
+  const data = res.data?.data || []
+
+>>>>>>> eaf7128358a106ff42be47185efe559cc016247c
   const chart = echarts.init(classChart.value)
   charts.push(chart)
-  
+
   chart.setOption({
     tooltip: { trigger: 'axis' },
     legend: { data: ['平均分', '及格率'] },
     xAxis: {
       type: 'category',
+<<<<<<< HEAD
       data: labels,
       axisLabel: { rotate: 30, fontSize: 10 }
     },
@@ -163,6 +183,31 @@ const loadClassComparison = async () => {
     series: [
       { name: '平均分', type: 'bar', data: avgScores },
       { name: '及格率', type: 'line', data: passRates }
+=======
+      data: data.map(d => d.className),
+      axisLabel: { rotate: 0, interval: 0 }
+    },
+    yAxis: { type: 'value', min: 0, max: 100 },
+    series: [
+      {
+        name: '平均分',
+        type: 'bar',
+        data: data.map(d => parseFloat(d.avgScore?.toFixed(1) || 0)),
+        itemStyle: { color: '#409eff' }
+      },
+      {
+        name: '最高分',
+        type: 'bar',
+        data: data.map(d => parseFloat(d.maxScore?.toFixed(1) || 0)),
+        itemStyle: { color: '#67c23a' }
+      },
+      {
+        name: '最低分',
+        type: 'bar',
+        data: data.map(d => parseFloat(d.minScore?.toFixed(1) || 0)),
+        itemStyle: { color: '#f56c6c' }
+      }
+>>>>>>> eaf7128358a106ff42be47185efe559cc016247c
     ]
   })
 }

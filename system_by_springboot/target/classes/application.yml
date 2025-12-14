@@ -10,13 +10,8 @@ spring:
     name: student-score-system
   
   # 数据源配置 - SQLite
-  datasource:
-    driver-class-name: org.sqlite.JDBC
-    url: jdbc:sqlite:./data/student_score.db
-    # SQLite不需要用户名密码
-    hikari:
-      maximum-pool-size: 1
-      minimum-idle: 1
+  # 数据源通过 DataSourceConfig.java 动态配置，自动定位项目目录
+  # 无需在此配置 datasource，避免路径问题
   
   # 文件上传配置
   servlet:

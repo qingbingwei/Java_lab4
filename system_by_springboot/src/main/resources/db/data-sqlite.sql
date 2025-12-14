@@ -19,14 +19,14 @@ INSERT OR IGNORE INTO teacher (teacher_id, name, title, department, phone, email
 ('T004', '陈教授', '教授', '软件学院', '13900139004', 'chenprof@example.com');
 
 -- 插入测试课程数据
-INSERT OR IGNORE INTO course (course_id, course_name, credits, course_type, description) VALUES
-('CS101', '高等数学', 4.0, '必修', '高等数学基础课程'),
-('CS102', 'Java程序设计', 3.0, '必修', 'Java语言程序设计'),
-('CS103', '数据结构', 4.0, '必修', '数据结构与算法'),
-('CS104', '数据库原理', 3.5, '必修', '数据库系统原理'),
-('CS105', '计算机网络', 3.0, '必修', '计算机网络原理'),
-('CS201', '软件工程', 3.0, '选修', '软件工程导论'),
-('CS202', '人工智能', 2.0, '选修', '人工智能基础');
+INSERT OR IGNORE INTO course (course_id, course_name, credits, course_type, hours, description) VALUES
+('CS101', '高等数学', 4.0, '必修', 64, '高等数学基础课程'),
+('CS102', 'Java程序设计', 3.0, '必修', 48, 'Java语言程序设计'),
+('CS103', '数据结构', 4.0, '必修', 64, '数据结构与算法'),
+('CS104', '数据库原理', 3.5, '必修', 56, '数据库系统原理'),
+('CS105', '计算机网络', 3.0, '必修', 48, '计算机网络原理'),
+('CS201', '软件工程', 3.0, '选修', 48, '软件工程导论'),
+('CS202', '人工智能', 2.0, '选修', 32, '人工智能基础');
 
 -- 插入测试教学班数据
 INSERT OR IGNORE INTO teaching_class (class_id, course_db_id, teacher_db_id, semester, capacity, current_size, schedule_time, classroom) VALUES
@@ -61,3 +61,11 @@ INSERT OR IGNORE INTO score (student_db_id, teaching_class_db_id, regular_score,
 (4, 3, 80, 78, 82, 75, 78.0, 2.8),
 (5, 2, 95, 92, 98, 90, 93.0, 4.0),
 (5, 3, 88, 85, 90, 82, 85.6, 3.5);
+
+-- 注意：用户数据通过 AuthService.initDefaultUsers() 方法初始化
+-- 这样可以确保密码使用正确的加密方式（SHA-256 + Salt）
+--
+-- 默认账号密码：
+-- 管理员: admin / 123456
+-- 教师: T001~T004 / 123456
+-- 学生: 2021001001~2022001003 / 123456

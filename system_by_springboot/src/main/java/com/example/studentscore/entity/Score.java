@@ -44,26 +44,26 @@ public class Score implements Serializable {
     /**
      * 平时成绩 (20%)
      */
-    @Schema(description = "平时成绩", example = "85")
-    private Integer regularScore;
+    @Schema(description = "平时成绩", example = "85.50")
+    private BigDecimal regularScore;
 
     /**
      * 期中成绩 (20%)
      */
-    @Schema(description = "期中成绩", example = "80")
-    private Integer midtermScore;
+    @Schema(description = "期中成绩", example = "80.00")
+    private BigDecimal midtermScore;
 
     /**
      * 实验成绩 (20%)
      */
-    @Schema(description = "实验成绩", example = "90")
-    private Integer experimentScore;
+    @Schema(description = "实验成绩", example = "90.00")
+    private BigDecimal experimentScore;
 
     /**
      * 期末成绩 (40%)
      */
-    @Schema(description = "期末成绩", example = "85")
-    private Integer finalExamScore;
+    @Schema(description = "期末成绩", example = "85.00")
+    private BigDecimal finalExamScore;
 
     /**
      * 综合成绩
@@ -123,11 +123,14 @@ public class Score implements Serializable {
      * 综合成绩 = 平时成绩*0.2 + 期中成绩*0.2 + 实验成绩*0.2 + 期末成绩*0.4
      */
     public void calculateFinalScore() {
-        if (regularScore != null && midtermScore != null && 
+        if (regularScore != null && midtermScore != null &&
             experimentScore != null && finalExamScore != null) {
-            double score = regularScore * 0.2 + midtermScore * 0.2 + 
-                          experimentScore * 0.2 + finalExamScore * 0.4;
-            this.finalScore = BigDecimal.valueOf(score).setScale(2, java.math.RoundingMode.HALF_UP);
+            BigDecimal regular = regularScore.multiply(BigDecimal.valueOf(0.2));
+            BigDecimal midterm = midtermScore.multiply(BigDecimal.valueOf(0.2));
+            BigDecimal experiment = experimentScore.multiply(BigDecimal.valueOf(0.2));
+            BigDecimal finalExam = finalExamScore.multiply(BigDecimal.valueOf(0.4));
+            this.finalScore = regular.add(midterm).add(experiment).add(finalExam)
+                    .setScale(2, java.math.RoundingMode.HALF_UP);
         }
     }
 }

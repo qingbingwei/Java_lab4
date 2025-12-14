@@ -72,9 +72,13 @@ CREATE TABLE IF NOT EXISTS enrollment (
     update_time DATETIME DEFAULT CURRENT_TIMESTAMP,
     deleted INTEGER DEFAULT 0,
     FOREIGN KEY (student_db_id) REFERENCES student(id),
-    FOREIGN KEY (teaching_class_db_id) REFERENCES teaching_class(id),
-    UNIQUE (student_db_id, teaching_class_db_id)
+    FOREIGN KEY (teaching_class_db_id) REFERENCES teaching_class(id)
 );
+
+-- 为未删除的选课记录创建唯一索引（支持重新选课）
+CREATE UNIQUE INDEX IF NOT EXISTS idx_enrollment_unique
+ON enrollment(student_db_id, teaching_class_db_id)
+WHERE deleted = 0;
 
 -- 成绩表
 CREATE TABLE IF NOT EXISTS score (
@@ -96,11 +100,22 @@ CREATE TABLE IF NOT EXISTS score (
     UNIQUE (student_db_id, teaching_class_db_id)
 );
 
--- 创建索引
+-- 创建索引优化查询性能
 CREATE INDEX IF NOT EXISTS idx_student_name ON student(name);
 CREATE INDEX IF NOT EXISTS idx_student_class ON student(class_name);
+CREATE INDEX IF NOT EXISTS idx_student_grade ON student(grade);
 CREATE INDEX IF NOT EXISTS idx_teacher_name ON teacher(name);
+CREATE INDEX IF NOT EXISTS idx_teacher_dept ON teacher(department);
 CREATE INDEX IF NOT EXISTS idx_course_name ON course(course_name);
+CREATE INDEX IF NOT EXISTS idx_course_type ON course(course_type);
+CREATE INDEX IF NOT EXISTS idx_teaching_class_semester ON teaching_class(semester);
+CREATE INDEX IF NOT EXISTS idx_teaching_class_course ON teaching_class(course_db_id);
+CREATE INDEX IF NOT EXISTS idx_teaching_class_teacher ON teaching_class(teacher_db_id);
+CREATE INDEX IF NOT EXISTS idx_enrollment_student ON enrollment(student_db_id);
+CREATE INDEX IF NOT EXISTS idx_enrollment_class ON enrollment(teaching_class_db_id);
+CREATE INDEX IF NOT EXISTS idx_score_student ON score(student_db_id);
+CREATE INDEX IF NOT EXISTS idx_score_class ON score(teaching_class_db_id);
+CREATE INDEX IF NOT EXISTS idx_score_final ON score(final_score);
 
 -- 用户表
 CREATE TABLE IF NOT EXISTS sys_user (
@@ -119,6 +134,3 @@ CREATE TABLE IF NOT EXISTS sys_user (
 
 CREATE INDEX IF NOT EXISTS idx_user_username ON sys_user(username);
 CREATE INDEX IF NOT EXISTS idx_user_role ON sys_user(role);
-CREATE INDEX IF NOT EXISTS idx_teaching_class_semester ON teaching_class(semester);
-CREATE INDEX IF NOT EXISTS idx_score_student ON score(student_db_id);
-CREATE INDEX IF NOT EXISTS idx_score_class ON score(teaching_class_db_id);
