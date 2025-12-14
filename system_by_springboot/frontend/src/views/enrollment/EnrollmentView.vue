@@ -93,9 +93,6 @@ import { List } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
 
 const userStore = useUserStore()
-
-const userStore = useUserStore()
-const isStudent = computed(() => userStore.isStudent)
 const isTeacher = computed(() => userStore.isTeacher)
 
 const students = ref([])
@@ -116,7 +113,6 @@ const availableClasses = computed(() => {
 const isStudent = computed(() => userStore.user?.role === 'STUDENT')
 
 const loadStudents = async () => {
-<<<<<<< HEAD
   if (isStudent.value) {
     // 学生角色自动加载自己的信息
     const res = await studentApi.getById(userStore.refId)
@@ -129,20 +125,6 @@ const loadStudents = async () => {
     const res = await studentApi.getList()
     students.value = res.data || []
   }
-=======
-  // 如果是学生角色，不加载学生列表，直接使用当前用户的refId
-  if (isStudent.value) {
-    selectedStudent.value = userStore.user?.refId
-    if (selectedStudent.value) {
-      loadStudentEnrollments()
-    }
-    return
-  }
-
-  // 管理员和教师可以查看所有学生
-  const res = await studentApi.getList()
-  students.value = res.data || []
->>>>>>> eaf7128358a106ff42be47185efe559cc016247c
 }
 
 const loadClasses = async () => {
