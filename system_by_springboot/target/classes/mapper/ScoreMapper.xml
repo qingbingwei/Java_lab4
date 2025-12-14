@@ -12,7 +12,7 @@
             COALESCE(tc.class_id, '') AS class_name,
             COALESCE(c.course_id, '') AS course_code,
             COALESCE(c.course_name, '未关联课程') AS course_name,
-            COALESCE(c.credits, 0) AS credit,
+            COALESCE(c.credits, 0) AS credits,
             COALESCE(t.name, '未分配教师') AS teacher_name,
             tc.semester,
             s.regular_score,
@@ -36,6 +36,9 @@
         </if>
         <if test="query.studentName != null and query.studentName != ''">
             AND st.name LIKE CONCAT('%', #{query.studentName}, '%')
+        </if>
+        <if test="query.courseDbId != null">
+            AND tc.course_db_id = #{query.courseDbId}
         </if>
         <if test="query.courseId != null and query.courseId != ''">
             AND c.course_id LIKE CONCAT('%', #{query.courseId}, '%')
@@ -78,7 +81,7 @@
             COALESCE(tc.class_id, '') AS class_name,
             COALESCE(c.course_id, '') AS course_code,
             COALESCE(c.course_name, '未关联课程') AS course_name,
-            COALESCE(c.credits, 0) AS credit,
+            COALESCE(c.credits, 0) AS credits,
             COALESCE(t.name, '未分配教师') AS teacher_name,
             tc.semester,
             s.regular_score,
@@ -107,7 +110,7 @@
             COALESCE(tc.class_id, '') AS class_name,
             COALESCE(c.course_id, '') AS course_code,
             COALESCE(c.course_name, '未关联课程') AS course_name,
-            COALESCE(c.credits, 0) AS credit,
+            COALESCE(c.credits, 0) AS credits,
             COALESCE(t.name, '未分配教师') AS teacher_name,
             tc.semester,
             s.regular_score,
@@ -132,6 +135,9 @@
         WHERE s.deleted = 0 AND s.final_score IS NOT NULL
         <if test="query.classId != null and query.classId != ''">
             AND tc.class_id = #{query.classId}
+        </if>
+        <if test="query.courseDbId != null">
+            AND tc.course_db_id = #{query.courseDbId}
         </if>
         <if test="query.courseId != null and query.courseId != ''">
             AND c.course_id = #{query.courseId}

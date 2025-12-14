@@ -43,15 +43,15 @@
         </el-form>
         
         <div class="login-tips">
-          <el-divider>默认账号</el-divider>
+          <el-divider>默认测试账号</el-divider>
           <div class="tips-content">
-            <p><el-tag type="danger">管理员</el-tag> admin / admin123</p>
-            <p><el-tag type="warning">教师</el-tag> 教师编号 / 123456</p>
-            <p><el-tag type="success">学生</el-tag> 学号 / 123456</p>
+            <p><el-tag type="danger">管理员</el-tag> admin / 123456</p>
+            <p><el-tag type="warning">教师</el-tag> T001~T004 / 123456</p>
+            <p><el-tag type="success">学生</el-tag> 2021001001~2022001003 / 123456</p>
+            <p style="margin-top: 12px; font-size: 12px; color: #999;">
+              💡 提示：系统已预置测试数据，可直接使用上述账号登录
+            </p>
           </div>
-          <el-button type="warning" size="small" @click="initUsers" style="margin-top: 12px;">
-            首次使用？点击初始化账号
-          </el-button>
         </div>
       </div>
     </div>
@@ -89,7 +89,7 @@ const rules = {
 const handleLogin = async () => {
   const valid = await formRef.value.validate().catch(() => false)
   if (!valid) return
-  
+
   loading.value = true
   try {
     await userStore.login(loginForm)
@@ -99,17 +99,6 @@ const handleLogin = async () => {
     console.error('登录失败:', error)
   } finally {
     loading.value = false
-  }
-}
-
-// 初始化用户账号
-const initUsers = async () => {
-  try {
-    await authApi.initUsers()
-    ElMessage.success('账号初始化成功！现在可以使用默认账号登录了')
-  } catch (e) {
-    console.error('初始化失败:', e)
-    ElMessage.error('初始化失败，请确保后端服务已启动')
   }
 }
 </script>

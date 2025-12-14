@@ -5,6 +5,7 @@ import lombok.Data;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 /**
  * 成绩查询参数
@@ -33,6 +34,9 @@ public class ScoreQuery implements Serializable {
     @Schema(description = "学生姓名")
     private String studentName;
 
+    @Schema(description = "课程数据库ID（用于课程筛选）")
+    private Long courseDbId;
+
     @Schema(description = "课程编号")
     private String courseId;
 
@@ -46,10 +50,10 @@ public class ScoreQuery implements Serializable {
     private String semester;
 
     @Schema(description = "最低分")
-    private Integer minScore;
+    private BigDecimal minScore;
 
     @Schema(description = "最高分")
-    private Integer maxScore;
+    private BigDecimal maxScore;
 
     @Schema(description = "排序字段")
     private String orderBy;

@@ -19,6 +19,8 @@
             </el-form-item>
           </el-form>
 
+          <el-alert v-if="isStudent" title="我的选课" type="info" :closable="false" style="margin-bottom: 16px" />
+
           <div v-if="selectedStudent">
             <el-divider>已选课程</el-divider>
             <el-table :data="studentEnrollments" stripe max-height="300">
@@ -88,6 +90,9 @@ import { useUserStore } from '@/stores/user'
 import { studentApi, teachingClassApi, enrollmentApi } from '@/api'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { List } from '@element-plus/icons-vue'
+import { useUserStore } from '@/stores/user'
+
+const userStore = useUserStore()
 
 const userStore = useUserStore()
 const isStudent = computed(() => userStore.isStudent)
@@ -107,7 +112,11 @@ const availableClasses = computed(() => {
   return classList.value.filter(c => !enrolledIds.has(c.id))
 })
 
+// 判断是否为学生角色
+const isStudent = computed(() => userStore.user?.role === 'STUDENT')
+
 const loadStudents = async () => {
+<<<<<<< HEAD
   if (isStudent.value) {
     // 学生角色自动加载自己的信息
     const res = await studentApi.getById(userStore.refId)
@@ -120,6 +129,20 @@ const loadStudents = async () => {
     const res = await studentApi.getList()
     students.value = res.data || []
   }
+=======
+  // 如果是学生角色，不加载学生列表，直接使用当前用户的refId
+  if (isStudent.value) {
+    selectedStudent.value = userStore.user?.refId
+    if (selectedStudent.value) {
+      loadStudentEnrollments()
+    }
+    return
+  }
+
+  // 管理员和教师可以查看所有学生
+  const res = await studentApi.getList()
+  students.value = res.data || []
+>>>>>>> eaf7128358a106ff42be47185efe559cc016247c
 }
 
 const loadClasses = async () => {

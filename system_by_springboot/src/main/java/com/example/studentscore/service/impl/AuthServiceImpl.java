@@ -151,7 +151,7 @@ public class AuthServiceImpl extends ServiceImpl<UserMapper, User> implements Au
         // 创建管理员
         User admin = new User();
         admin.setUsername("admin");
-        admin.setPassword(PasswordUtil.encryptPassword("admin123"));
+        admin.setPassword(PasswordUtil.encryptPassword("123456"));
         admin.setRealName("系统管理员");
         admin.setRole("ADMIN");
         admin.setStatus(1);
