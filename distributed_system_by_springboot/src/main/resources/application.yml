@@ -1,0 +1,83 @@
+# 服务器配置
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+# Spring配置
+spring:
+  application:
+    name: student-score-system
+  
+  # 数据源配置 - SQLite
+  # 数据源通过 DataSourceConfig.java 动态配置，自动定位项目目录
+  # 无需在此配置 datasource，避免路径问题
+  
+  # 文件上传配置
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 50MB
+  
+  # 数据库初始化 - SQLite
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:db/schema-sqlite.sql
+      data-locations: classpath:db/data-sqlite.sql
+      encoding: UTF-8
+      continue-on-error: true
+
+# MyBatis-Plus配置
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**/*.xml
+  type-aliases-package: com.example.studentscore.entity
+  global-config:
+    db-config:
+      id-type: none
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+    banner: false
+  configuration:
+    map-underscore-to-camel-case: true
+    cache-enabled: false
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    use-generated-keys: false
+    jdbc-type-for-null: 'null'
+
+# Knife4j配置
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+  group-configs:
+    - group: '学生成绩管理系统'
+      paths-to-match: '/**'
+      packages-to-scan: com.example.studentscore.controller
+
+knife4j:
+  enable: true
+  setting:
+    language: zh_cn
+    swagger-model-name: 实体类列表
+  basic:
+    enable: false
+    username: admin
+    password: admin
+
+# 日志配置
+logging:
+  level:
+    com.example.studentscore: debug
+    com.example.studentscore.mapper: debug
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# 文件存储路径
+file:
+  upload-path: ./uploads/
