@@ -72,6 +72,7 @@ public class TeachingClassServiceImpl extends ServiceImpl<TeachingClassMapper, T
         
         TeachingClass teachingClass = new TeachingClass();
         BeanUtil.copyProperties(dto, teachingClass);
+        teachingClass.setId(null); // 确保新增时ID为null，让数据库自动生成
         teachingClass.setCurrentSize(0);
         return save(teachingClass);
     }

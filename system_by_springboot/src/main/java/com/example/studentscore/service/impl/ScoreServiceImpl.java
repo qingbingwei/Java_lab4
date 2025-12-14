@@ -47,43 +47,95 @@ public class ScoreServiceImpl extends ServiceImpl<ScoreMapper, Score> implements
                 .eq(Score::getTeachingClassDbId, teachingClassDbId)
                 .one();
     }
+    
+    /**
+     * 查询成绩记录（包括已删除的）
+     */
+    private Score getByStudentAndClassIncludeDeleted(Long studentDbId, Long teachingClassDbId) {
+        return baseMapper.selectOne(
+            new LambdaQueryWrapper<Score>()
+                .eq(Score::getStudentDbId, studentDbId)
+                .eq(Score::getTeachingClassDbId, teachingClassDbId)
+                .last("LIMIT 1")  // 避免唯一约束下可能的多条记录问题
+        );
+    }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public boolean addScore(ScoreDTO dto) {
-        // 检查是否已存在该学生在该教学班的成绩
-        Score existing = getByStudentAndClass(dto.getStudentDbId(), dto.getTeachingClassDbId());
+    public Long addScore(ScoreDTO dto) {
+        // 检查是否已存在该学生在该教学班的成绩（包括已删除的）
+        Score existing = getByStudentAndClassIncludeDeleted(dto.getStudentDbId(), dto.getTeachingClassDbId());
         if (existing != null) {
-            throw new BusinessException(ResultCode.ALREADY_EXISTS, "该学生在该教学班已有成绩记录");
+            // 如果存在（无论是否已删除），则更新该记录
+            if (existing.getDeleted() != null && existing.getDeleted() == 1) {
+                // 恢复已删除的记录
+                existing.setDeleted(0);
+            }
+            // 更新成绩字段
+            updateScoreFieldsDirectly(existing, dto);
+            existing.calculateFinalScore();
+            baseMapper.updateById(existing);
+            return existing.getId();
         }
         
+        // 创建新成绩记录
         Score score = new Score();
         BeanUtil.copyProperties(dto, score);
         setScoreTimestamps(score, dto);
         score.calculateFinalScore();
-        return save(score);
+        save(score);
+        return score.getId();
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean updateScore(ScoreDTO dto) {
-        if (dto.getId() == null) {
-            throw new BusinessException(ResultCode.PARAM_ERROR, "成绩ID不能为空");
+        Score existing;
+        
+        if (dto.getId() != null) {
+            // 先尝试通过 ID 查找
+            existing = getById(dto.getId());
+        } else {
+            existing = null;
         }
         
-        Score existing = getById(dto.getId());
+        // 如果通过 ID 找不到，尝试通过 studentDbId 和 teachingClassDbId 查找
+        if (existing == null && dto.getStudentDbId() != null && dto.getTeachingClassDbId() != null) {
+            existing = getByStudentAndClass(dto.getStudentDbId(), dto.getTeachingClassDbId());
+        }
+        
         if (existing == null) {
-            throw new BusinessException(ResultCode.NOT_FOUND, "成绩记录不存在");
+            // 如果仍然找不到，则创建新记录
+            addScore(dto);
+            return true;
         }
         
-        // 更新各项成绩并记录时间
-        updateScoreFields(existing, dto);
+        // 更新各项成绩
+        updateScoreFieldsDirectly(existing, dto);
         existing.calculateFinalScore();
         return updateById(existing);
     }
 
     private void setScoreTimestamps(Score score, ScoreDTO dto) {
         // 时间戳字段已移除，使用 create_time 和 update_time 自动填充
+    }
+    
+    /**
+     * 直接更新成绩字段（不检查是否变化）
+     */
+    private void updateScoreFieldsDirectly(Score existing, ScoreDTO dto) {
+        if (dto.getRegularScore() != null) {
+            existing.setRegularScore(dto.getRegularScore());
+        }
+        if (dto.getMidtermScore() != null) {
+            existing.setMidtermScore(dto.getMidtermScore());
+        }
+        if (dto.getExperimentScore() != null) {
+            existing.setExperimentScore(dto.getExperimentScore());
+        }
+        if (dto.getFinalExamScore() != null) {
+            existing.setFinalExamScore(dto.getFinalExamScore());
+        }
     }
 
     private void updateScoreFields(Score existing, ScoreDTO dto) {
@@ -104,14 +156,27 @@ public class ScoreServiceImpl extends ServiceImpl<ScoreMapper, Score> implements
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean batchAddScores(List<ScoreDTO> dtoList) {
-        List<Score> scores = dtoList.stream().map(dto -> {
-            Score score = new Score();
-            BeanUtil.copyProperties(dto, score);
-            setScoreTimestamps(score, dto);
-            score.calculateFinalScore();
-            return score;
-        }).collect(Collectors.toList());
-        return saveBatch(scores);
+        for (ScoreDTO dto : dtoList) {
+            // 检查是否已存在（包括已删除的）
+            Score existing = getByStudentAndClassIncludeDeleted(dto.getStudentDbId(), dto.getTeachingClassDbId());
+            if (existing != null) {
+                // 如果存在（无论是否已删除），则更新该记录
+                if (existing.getDeleted() != null && existing.getDeleted() == 1) {
+                    existing.setDeleted(0);
+                }
+                updateScoreFieldsDirectly(existing, dto);
+                existing.calculateFinalScore();
+                baseMapper.updateById(existing);
+            } else {
+                // 不存在则创建
+                Score score = new Score();
+                BeanUtil.copyProperties(dto, score);
+                setScoreTimestamps(score, dto);
+                score.calculateFinalScore();
+                save(score);
+            }
+        }
+        return true;
     }
 
     @Override

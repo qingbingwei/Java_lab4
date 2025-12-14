@@ -69,6 +69,7 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
         
         Teacher teacher = new Teacher();
         BeanUtil.copyProperties(dto, teacher);
+        teacher.setId(null); // 确保新增时ID为null，让数据库自动生成
         return save(teacher);
     }
 

@@ -78,12 +78,18 @@ let charts = []
 
 const loadOverview = async () => {
   const res = await statisticsApi.getOverview()
-  overview.value = res.data || {}
+  const data = res.data || {}
+  overview.value = {
+    scoreCount: data.scoreCount || 0,
+    avgScore: data.averageScore || 0,
+    passRate: data.passRate || 0,
+    excellentRate: data.excellentRate || 0
+  }
 }
 
 const loadDistribution = async () => {
   const res = await statisticsApi.getScoreDistribution()
-  const data = res.data || {}
+  const data = res.data?.distribution || {}
   
   const chart = echarts.init(distributionChart.value)
   charts.push(chart)
@@ -95,11 +101,11 @@ const loadDistribution = async () => {
       type: 'pie',
       radius: ['40%', '70%'],
       data: [
-        { value: data['90-100'] || 0, name: '优秀(90-100)', itemStyle: { color: '#67c23a' } },
-        { value: data['80-89'] || 0, name: '良好(80-89)', itemStyle: { color: '#409eff' } },
-        { value: data['70-79'] || 0, name: '中等(70-79)', itemStyle: { color: '#e6a23c' } },
-        { value: data['60-69'] || 0, name: '及格(60-69)', itemStyle: { color: '#909399' } },
-        { value: data['0-59'] || 0, name: '不及格(<60)', itemStyle: { color: '#f56c6c' } }
+        { value: data['优秀(90-100)'] || 0, name: '优秀(90-100)', itemStyle: { color: '#67c23a' } },
+        { value: data['良好(80-89)'] || 0, name: '良好(80-89)', itemStyle: { color: '#409eff' } },
+        { value: data['中等(70-79)'] || 0, name: '中等(70-79)', itemStyle: { color: '#e6a23c' } },
+        { value: data['及格(60-69)'] || 0, name: '及格(60-69)', itemStyle: { color: '#909399' } },
+        { value: data['不及格(<60)'] || 0, name: '不及格(<60)', itemStyle: { color: '#f56c6c' } }
       ]
     }]
   })
@@ -107,7 +113,7 @@ const loadDistribution = async () => {
 
 const loadCourseAverage = async () => {
   const res = await statisticsApi.getCourseAverage()
-  const data = res.data || []
+  const data = res.data?.details || []
   
   const chart = echarts.init(courseChart.value)
   charts.push(chart)
@@ -116,13 +122,13 @@ const loadCourseAverage = async () => {
     tooltip: { trigger: 'axis' },
     xAxis: {
       type: 'category',
-      data: data.map(d => d.courseName),
+      data: data.map(d => d.courseName || ''),
       axisLabel: { rotate: 30, fontSize: 10 }
     },
     yAxis: { type: 'value', min: 0, max: 100 },
     series: [{
       type: 'bar',
-      data: data.map(d => d.avgScore?.toFixed(1)),
+      data: data.map(d => d.averageScore || 0),
       itemStyle: {
         color: (params) => {
           const value = params.value
@@ -138,23 +144,25 @@ const loadCourseAverage = async () => {
 
 const loadClassComparison = async () => {
   const res = await statisticsApi.getClassComparison()
-  const data = res.data || []
+  const labels = res.data?.labels || []
+  const avgScores = res.data?.avgScores || []
+  const passRates = res.data?.passRates || []
   
   const chart = echarts.init(classChart.value)
   charts.push(chart)
   
   chart.setOption({
     tooltip: { trigger: 'axis' },
-    legend: { data: ['平均分', '最高分', '最低分'] },
+    legend: { data: ['平均分', '及格率'] },
     xAxis: {
       type: 'category',
-      data: data.map(d => d.className)
+      data: labels,
+      axisLabel: { rotate: 30, fontSize: 10 }
     },
     yAxis: { type: 'value', min: 0, max: 100 },
     series: [
-      { name: '平均分', type: 'bar', data: data.map(d => d.avgScore?.toFixed(1)) },
-      { name: '最高分', type: 'bar', data: data.map(d => d.maxScore) },
-      { name: '最低分', type: 'bar', data: data.map(d => d.minScore) }
+      { name: '平均分', type: 'bar', data: avgScores },
+      { name: '及格率', type: 'line', data: passRates }
     ]
   })
 }
