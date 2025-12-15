@@ -351,10 +351,11 @@ export const enrollmentApi = {
  */
 export const statisticsApi = {
   // 系统概览
-  getOverview() {
+  getOverview(params) {
     return request({
       url: '/statistics/overview',
-      method: 'get'
+      method: 'get',
+      params
     })
   },
   // 成绩分布

@@ -17,14 +17,29 @@ public interface StatisticsService {
     StatisticsVO getOverview();
     
     /**
+     * 获取系统概览统计（教师专用，只统计自己的教学班）
+     */
+    StatisticsVO getOverviewByTeacher(Long teacherDbId);
+    
+    /**
      * 获取课程统计
      */
     List<CourseStatisticsVO> getCourseStatistics();
     
     /**
+     * 获取课程统计（教师专用，只统计自己的教学班）
+     */
+    List<CourseStatisticsVO> getCourseStatisticsByTeacher(Long teacherDbId);
+    
+    /**
      * 获取教学班统计
      */
     List<ClassStatisticsVO> getClassStatistics();
+    
+    /**
+     * 获取教学班统计（教师专用，只统计自己的教学班）
+     */
+    List<ClassStatisticsVO> getClassStatisticsByTeacher(Long teacherDbId);
     
     /**
      * 获取指定课程的统计
@@ -40,6 +55,11 @@ public interface StatisticsService {
      * 获取成绩分布
      */
     List<Integer> getScoreDistribution();
+    
+    /**
+     * 获取成绩分布（教师专用，只统计自己的教学班）
+     */
+    List<Integer> getScoreDistributionByTeacher(Long teacherDbId);
     
     /**
      * 获取教学班成绩分布

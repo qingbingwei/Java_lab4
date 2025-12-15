@@ -64,11 +64,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useUserStore } from '@/stores/user'
 import { statisticsApi } from '@/api'
 import * as echarts from 'echarts'
 import { PieChart } from '@element-plus/icons-vue'
 
+const userStore = useUserStore()
 const overview = ref({})
 const distributionChart = ref()
 const courseChart = ref()
@@ -76,19 +78,29 @@ const classChart = ref()
 
 let charts = []
 
+// 判断是否是教师角色
+const isTeacher = computed(() => userStore.isTeacher)
+// 获取教师参数
+const getTeacherParams = () => {
+  if (isTeacher.value) {
+    return { teacherDbId: userStore.refId }
+  }
+  return {}
+}
+
 const loadOverview = async () => {
-  const res = await statisticsApi.getOverview()
+  const res = await statisticsApi.getOverview(getTeacherParams())
   const data = res.data || {}
   overview.value = {
     scoreCount: data.scoreCount || 0,
-    avgScore: data.averageScore || 0,
+    averageScore: data.averageScore || 0,
     passRate: data.passRate || 0,
     excellentRate: data.excellentRate || 0
   }
 }
 
 const loadDistribution = async () => {
-  const res = await statisticsApi.getScoreDistribution()
+  const res = await statisticsApi.getScoreDistribution(getTeacherParams())
   const data = res.data?.distribution || {}
   
   const chart = echarts.init(distributionChart.value)
@@ -112,7 +124,7 @@ const loadDistribution = async () => {
 }
 
 const loadCourseAverage = async () => {
-  const res = await statisticsApi.getCourseAverage()
+  const res = await statisticsApi.getCourseAverage(getTeacherParams())
   const data = res.data?.details || []
   
   const chart = echarts.init(courseChart.value)
@@ -143,7 +155,7 @@ const loadCourseAverage = async () => {
 }
 
 const loadClassComparison = async () => {
-  const res = await statisticsApi.getClassComparison()
+  const res = await statisticsApi.getClassComparison(getTeacherParams())
   const labels = res.data?.labels || []
   const avgScores = res.data?.avgScores || []
   const passRates = res.data?.passRates || []
