@@ -151,7 +151,8 @@ public class AuthServiceImpl extends ServiceImpl<UserMapper, User> implements Au
     public void initDefaultUsers() {
         // 检查是否已初始化
         if (count() > 0) {
-            log.info("用户已初始化，跳过");
+            log.info("用户已存在，执行同步...");
+            syncUsers();
             return;
         }
 
@@ -212,6 +213,72 @@ public class AuthServiceImpl extends ServiceImpl<UserMapper, User> implements Au
         // 批量保存
         saveBatch(userList);
         log.info("默认用户初始化完成，共创建 {} 个用户", userList.size());
+    }
+    
+    /**
+     * 同步用户数据：为缺失的教师和学生创建用户账号
+     */
+    private void syncUsers() {
+        List<User> newUsers = new ArrayList<>();
+        
+        // 同步教师用户
+        try {
+            Result<List<Teacher>> teacherResult = teacherFeignClient.getList();
+            if (teacherResult != null && teacherResult.getData() != null) {
+                for (Teacher teacher : teacherResult.getData()) {
+                    // 检查用户是否已存在
+                    LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+                    wrapper.eq(User::getUsername, teacher.getTeacherId());
+                    if (count(wrapper) == 0) {
+                        User teacherUser = new User();
+                        teacherUser.setUsername(teacher.getTeacherId());
+                        teacherUser.setPassword(PasswordUtil.encryptPassword("123456"));
+                        teacherUser.setRealName(teacher.getName());
+                        teacherUser.setRole("TEACHER");
+                        teacherUser.setRefId(teacher.getId());
+                        teacherUser.setStatus(1);
+                        teacherUser.setCreateTime(LocalDateTime.now());
+                        newUsers.add(teacherUser);
+                        log.info("创建教师用户: {}", teacher.getTeacherId());
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.warn("同步教师用户失败: {}", e.getMessage());
+        }
+        
+        // 同步学生用户
+        try {
+            Result<List<Student>> studentResult = studentFeignClient.getList();
+            if (studentResult != null && studentResult.getData() != null) {
+                for (Student student : studentResult.getData()) {
+                    // 检查用户是否已存在
+                    LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+                    wrapper.eq(User::getUsername, student.getStudentId());
+                    if (count(wrapper) == 0) {
+                        User studentUser = new User();
+                        studentUser.setUsername(student.getStudentId());
+                        studentUser.setPassword(PasswordUtil.encryptPassword("123456"));
+                        studentUser.setRealName(student.getName());
+                        studentUser.setRole("STUDENT");
+                        studentUser.setRefId(student.getId());
+                        studentUser.setStatus(1);
+                        studentUser.setCreateTime(LocalDateTime.now());
+                        newUsers.add(studentUser);
+                        log.info("创建学生用户: {}", student.getStudentId());
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.warn("同步学生用户失败: {}", e.getMessage());
+        }
+        
+        if (!newUsers.isEmpty()) {
+            saveBatch(newUsers);
+            log.info("用户同步完成，共创建 {} 个新用户", newUsers.size());
+        } else {
+            log.info("用户同步完成，无需创建新用户");
+        }
     }
 
     private List<String> getPermissionsByRole(String role) {
