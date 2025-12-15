@@ -368,6 +368,21 @@ public class ScoreServiceImpl implements ScoreService {
             wrapper.eq(Score::getStudentDbId, query.getStudentDbId());
         }
         
+        // 教师只能查自己教学班的成绩
+        if (query.getTeacherDbId() != null) {
+            // 查询该教师的所有教学班
+            LambdaQueryWrapper<TeachingClass> tcWrapper = new LambdaQueryWrapper<>();
+            tcWrapper.eq(TeachingClass::getTeacherDbId, query.getTeacherDbId());
+            List<TeachingClass> teacherClasses = teachingClassMapper.selectList(tcWrapper);
+            if (!teacherClasses.isEmpty()) {
+                List<Long> classDbIds = teacherClasses.stream().map(TeachingClass::getId).toList();
+                wrapper.in(Score::getTeachingClassDbId, classDbIds);
+            } else {
+                // 教师没有教学班，返回空结果
+                wrapper.isNull(Score::getId);
+            }
+        }
+        
         if (StringUtils.hasText(query.getStudentId())) {
             // 查询学生数据库ID
             LambdaQueryWrapper<Student> studentWrapper = new LambdaQueryWrapper<>();

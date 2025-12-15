@@ -69,8 +69,10 @@ public class ExcelController {
     @GetMapping("/export/scores")
     public void exportScores(
             @Parameter(description = "教学班编号") @RequestParam(required = false) String classId,
+            @Parameter(description = "学生数据库ID（学生只导出自己成绩）") @RequestParam(required = false) Long studentDbId,
+            @Parameter(description = "教师数据库ID（教师只导出自己教学班成绩）") @RequestParam(required = false) Long teacherDbId,
             HttpServletResponse response) {
-        excelService.exportScores(classId, response);
+        excelService.exportScores(classId, studentDbId, teacherDbId, response);
     }
     
     @Operation(summary = "下载导入模板")

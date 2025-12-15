@@ -26,6 +26,9 @@ public class ScoreQuery implements Serializable {
     @Schema(description = "学生数据库ID（用于学生只查自己的成绩）")
     private Long studentDbId;
 
+    @Schema(description = "教师数据库ID（用于教师只查自己教学班的成绩）")
+    private Long teacherDbId;
+
     @Schema(description = "学号")
     private String studentId;
 

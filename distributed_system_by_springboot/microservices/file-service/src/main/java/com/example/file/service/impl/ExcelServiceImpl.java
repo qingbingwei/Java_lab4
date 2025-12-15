@@ -375,12 +375,29 @@ public class ExcelServiceImpl implements ExcelService {
     }
     
     @Override
-    public void exportScores(String classId, HttpServletResponse response) {
+    public void exportScores(String classId, Long studentDbId, Long teacherDbId, HttpServletResponse response) {
         try {
             setExcelResponse(response, "成绩数据");
             LambdaQueryWrapper<Score> wrapper = new LambdaQueryWrapper<>();
             if (classId != null && !classId.isEmpty()) {
                 wrapper.eq(Score::getTeachingClassDbId, classId);
+            }
+            // 学生只导出自己的成绩
+            if (studentDbId != null) {
+                wrapper.eq(Score::getStudentDbId, studentDbId);
+            }
+            // 教师只导出自己教学班的成绩
+            if (teacherDbId != null) {
+                LambdaQueryWrapper<TeachingClass> tcWrapper = new LambdaQueryWrapper<>();
+                tcWrapper.eq(TeachingClass::getTeacherDbId, teacherDbId);
+                List<TeachingClass> teacherClasses = teachingClassMapper.selectList(tcWrapper);
+                if (!teacherClasses.isEmpty()) {
+                    List<Long> classDbIds = teacherClasses.stream().map(TeachingClass::getId).toList();
+                    wrapper.in(Score::getTeachingClassDbId, classDbIds);
+                } else {
+                    // 教师没有教学班，返回空结果
+                    wrapper.isNull(Score::getId);
+                }
             }
             List<Score> scores = scoreMapper.selectList(wrapper);
             

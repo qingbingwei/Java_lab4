@@ -106,6 +106,8 @@ const total = ref(0)
 
 // 判断是否是学生角色
 const isStudent = computed(() => userStore.isStudent)
+// 判断是否是教师角色
+const isTeacher = computed(() => userStore.isTeacher)
 
 const queryParams = reactive({
   pageNum: 1,
@@ -113,7 +115,8 @@ const queryParams = reactive({
   studentId: '',
   studentName: '',
   semester: '',
-  studentDbId: null // 学生专用：限定只能查自己
+  studentDbId: null, // 学生专用：限定只能查自己
+  teacherDbId: null  // 教师专用：限定只能查自己教学班
 })
 
 const loadData = async () => {
@@ -126,6 +129,10 @@ const loadData = async () => {
       // 学生不应使用这些参数
       delete params.studentId
       delete params.studentName
+    }
+    // 如果是教师，只查询自己教学班的成绩
+    if (isTeacher.value) {
+      params.teacherDbId = userStore.refId
     }
     const res = await scoreApi.getPage(params)
     scoreList.value = res.data?.records || []
@@ -152,6 +159,10 @@ const handleExport = () => {
   // 如果是学生，只导出自己的成绩
   if (isStudent.value) {
     params.studentDbId = userStore.refId
+  }
+  // 如果是教师，只导出自己教学班学生的成绩
+  if (isTeacher.value) {
+    params.teacherDbId = userStore.refId
   }
   window.open(excelApi.exportScores(params))
 }
