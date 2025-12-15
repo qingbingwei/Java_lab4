@@ -331,6 +331,8 @@ const loadStudentStats = async () => {
 }
 
 onMounted(() => {
+  // 重新加载概览数据，确保使用正确的用户角色
+  systemStore.loadOverview()
   loadStudentStats()
 })
 
