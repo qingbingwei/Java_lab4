@@ -81,10 +81,13 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useUserStore } from '@/stores/user'
 import { teachingClassApi, scoreApi } from '@/api'
 import { getScoreClass } from '@/utils'
 import { ElMessage } from 'element-plus'
 import { EditPen } from '@element-plus/icons-vue'
+
+const userStore = useUserStore()
 
 const loading = ref(false)
 const classList = ref([])
@@ -98,8 +101,24 @@ const scoreTypeLabel = computed(() => {
 })
 
 const loadClasses = async () => {
-  const res = await teachingClassApi.getList()
-  classList.value = res.data || []
+  try {
+    let res
+    // 教师只能看到自己的教学班，管理员可以看到所有
+    if (userStore.isTeacher) {
+      const teacherId = userStore.businessId
+      if (!teacherId) {
+        ElMessage.warning('无法获取教师信息，请重新登录')
+        return
+      }
+      res = await teachingClassApi.getTeacherClasses(teacherId)
+    } else {
+      res = await teachingClassApi.getList()
+    }
+    classList.value = res.data || []
+  } catch (error) {
+    console.error('获取教学班列表失败:', error)
+    ElMessage.error('获取教学班列表失败')
+  }
 }
 
 const loadStudents = async () => {

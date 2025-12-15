@@ -47,7 +47,7 @@ const routes = [
         path: '/teaching-classes',
         name: 'TeachingClasses',
         component: () => import('@/views/classes/ClassList.vue'),
-        meta: { title: '教学班管理', icon: 'School', permission: 'classes', roles: ['ADMIN', 'TEACHER'] }
+        meta: { title: '教学班管理', icon: 'School', permission: 'classes', roles: ['ADMIN'] }
       },
       {
         path: '/scores/entry',

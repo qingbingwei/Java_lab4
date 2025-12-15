@@ -38,45 +38,45 @@
 
       <el-table :data="scoreList" v-loading="loading" style="width: 100%">
         <el-table-column prop="studentId" label="学号" width="120" />
-        <el-table-column prop="studentName" label="姓名" width="100" />
-        <el-table-column prop="regularScore" label="平时成绩" width="100" align="center">
+        <el-table-column prop="name" label="姓名" width="100" />
+        <el-table-column label="平时成绩" width="100" align="center">
           <template #default="{ row }">
-            <span v-if="row.regularScore != null">{{ row.regularScore }}</span>
+            <span v-if="row.score?.regularScore != null">{{ row.score.regularScore }}</span>
             <span v-else class="text-muted">-</span>
           </template>
         </el-table-column>
-        <el-table-column prop="midtermScore" label="期中成绩" width="100" align="center">
+        <el-table-column label="期中成绩" width="100" align="center">
           <template #default="{ row }">
-            <span v-if="row.midtermScore != null">{{ row.midtermScore }}</span>
+            <span v-if="row.score?.midtermScore != null">{{ row.score.midtermScore }}</span>
             <span v-else class="text-muted">-</span>
           </template>
         </el-table-column>
-        <el-table-column prop="experimentScore" label="实验成绩" width="100" align="center">
+        <el-table-column label="实验成绩" width="100" align="center">
           <template #default="{ row }">
-            <span v-if="row.experimentScore != null">{{ row.experimentScore }}</span>
+            <span v-if="row.score?.experimentScore != null">{{ row.score.experimentScore }}</span>
             <span v-else class="text-muted">-</span>
           </template>
         </el-table-column>
-        <el-table-column prop="finalExamScore" label="期末成绩" width="100" align="center">
+        <el-table-column label="期末成绩" width="100" align="center">
           <template #default="{ row }">
-            <span v-if="row.finalExamScore != null">{{ row.finalExamScore }}</span>
+            <span v-if="row.score?.finalExamScore != null">{{ row.score.finalExamScore }}</span>
             <span v-else class="text-muted">-</span>
           </template>
         </el-table-column>
-        <el-table-column prop="finalScore" label="综合成绩" width="100" align="center">
+        <el-table-column label="综合成绩" width="100" align="center">
           <template #default="{ row }">
             <el-tag 
-              v-if="row.finalScore != null" 
-              :type="row.finalScore >= 60 ? 'success' : 'danger'"
+              v-if="row.score?.finalScore != null" 
+              :type="row.score.finalScore >= 60 ? 'success' : 'danger'"
             >
-              {{ row.finalScore }}
+              {{ row.score.finalScore }}
             </el-tag>
             <span v-else class="text-muted">-</span>
           </template>
         </el-table-column>
-        <el-table-column prop="gradePoint" label="绩点" width="80" align="center">
+        <el-table-column label="绩点" width="80" align="center">
           <template #default="{ row }">
-            <span v-if="row.gradePoint != null">{{ row.gradePoint }}</span>
+            <span v-if="row.score?.gradePoint != null">{{ row.score.gradePoint }}</span>
             <span v-else class="text-muted">-</span>
           </template>
         </el-table-column>
@@ -106,8 +106,8 @@ const scoreList = ref([])
 const statistics = computed(() => {
   const list = scoreList.value
   const studentCount = list.length
-  const enteredCount = list.filter(s => s.finalScore != null).length
-  const validScores = list.filter(s => s.finalScore != null).map(s => s.finalScore)
+  const enteredCount = list.filter(s => s.score?.finalScore != null).length
+  const validScores = list.filter(s => s.score?.finalScore != null).map(s => s.score.finalScore)
   const avgScore = validScores.length > 0 
     ? validScores.reduce((a, b) => a + b, 0) / validScores.length 
     : 0
@@ -120,12 +120,13 @@ const statistics = computed(() => {
 // 获取教师的教学班列表
 const fetchClasses = async () => {
   try {
-    const teacherDbId = userStore.refId
-    if (!teacherDbId) {
+    // 使用教师工号获取其教学班
+    const teacherId = userStore.businessId
+    if (!teacherId) {
       ElMessage.warning('无法获取教师信息，请重新登录')
       return
     }
-    const res = await teachingClassApi.getTeacherClasses(teacherDbId)
+    const res = await teachingClassApi.getTeacherClasses(teacherId)
     classList.value = res.data || []
     // 如果有班级，默认选中第一个
     if (classList.value.length > 0) {

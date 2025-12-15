@@ -216,10 +216,11 @@ public class AuthServiceImpl extends ServiceImpl<UserMapper, User> implements Au
     }
     
     /**
-     * 同步用户数据：为缺失的教师和学生创建用户账号
+     * 同步用户数据：为缺失的教师和学生创建用户账号，并更新已存在用户的 refId
      */
     private void syncUsers() {
         List<User> newUsers = new ArrayList<>();
+        List<User> updateUsers = new ArrayList<>();
         
         // 同步教师用户
         try {
@@ -229,7 +230,10 @@ public class AuthServiceImpl extends ServiceImpl<UserMapper, User> implements Au
                     // 检查用户是否已存在
                     LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
                     wrapper.eq(User::getUsername, teacher.getTeacherId());
-                    if (count(wrapper) == 0) {
+                    User existingUser = getOne(wrapper);
+                    
+                    if (existingUser == null) {
+                        // 创建新用户
                         User teacherUser = new User();
                         teacherUser.setUsername(teacher.getTeacherId());
                         teacherUser.setPassword(PasswordUtil.encryptPassword("123456"));
@@ -240,6 +244,11 @@ public class AuthServiceImpl extends ServiceImpl<UserMapper, User> implements Au
                         teacherUser.setCreateTime(LocalDateTime.now());
                         newUsers.add(teacherUser);
                         log.info("创建教师用户: {}", teacher.getTeacherId());
+                    } else if (existingUser.getRefId() == null) {
+                        // 更新已存在用户的 refId
+                        existingUser.setRefId(teacher.getId());
+                        updateUsers.add(existingUser);
+                        log.info("更新教师用户 refId: {} -> {}", teacher.getTeacherId(), teacher.getId());
                     }
                 }
             }
@@ -255,7 +264,10 @@ public class AuthServiceImpl extends ServiceImpl<UserMapper, User> implements Au
                     // 检查用户是否已存在
                     LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
                     wrapper.eq(User::getUsername, student.getStudentId());
-                    if (count(wrapper) == 0) {
+                    User existingUser = getOne(wrapper);
+                    
+                    if (existingUser == null) {
+                        // 创建新用户
                         User studentUser = new User();
                         studentUser.setUsername(student.getStudentId());
                         studentUser.setPassword(PasswordUtil.encryptPassword("123456"));
@@ -266,6 +278,11 @@ public class AuthServiceImpl extends ServiceImpl<UserMapper, User> implements Au
                         studentUser.setCreateTime(LocalDateTime.now());
                         newUsers.add(studentUser);
                         log.info("创建学生用户: {}", student.getStudentId());
+                    } else if (existingUser.getRefId() == null) {
+                        // 更新已存在用户的 refId
+                        existingUser.setRefId(student.getId());
+                        updateUsers.add(existingUser);
+                        log.info("更新学生用户 refId: {} -> {}", student.getStudentId(), student.getId());
                     }
                 }
             }
@@ -273,11 +290,20 @@ public class AuthServiceImpl extends ServiceImpl<UserMapper, User> implements Au
             log.warn("同步学生用户失败: {}", e.getMessage());
         }
         
+        // 批量保存新用户
         if (!newUsers.isEmpty()) {
             saveBatch(newUsers);
             log.info("用户同步完成，共创建 {} 个新用户", newUsers.size());
-        } else {
-            log.info("用户同步完成，无需创建新用户");
+        }
+        
+        // 批量更新已存在用户
+        if (!updateUsers.isEmpty()) {
+            updateBatchById(updateUsers);
+            log.info("用户同步完成，共更新 {} 个用户的 refId", updateUsers.size());
+        }
+        
+        if (newUsers.isEmpty() && updateUsers.isEmpty()) {
+            log.info("用户同步完成，无需创建或更新用户");
         }
     }
 

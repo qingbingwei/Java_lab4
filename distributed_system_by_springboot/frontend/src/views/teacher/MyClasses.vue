@@ -83,13 +83,13 @@ const currentClass = ref(null)
 const fetchClasses = async () => {
   loading.value = true
   try {
-    // 使用教师的 refId 获取其教学班
-    const teacherDbId = userStore.refId
-    if (!teacherDbId) {
+    // 使用教师工号获取其教学班
+    const teacherId = userStore.businessId
+    if (!teacherId) {
       ElMessage.warning('无法获取教师信息，请重新登录')
       return
     }
-    const res = await teachingClassApi.getTeacherClasses(teacherDbId)
+    const res = await teachingClassApi.getTeacherClasses(teacherId)
     classList.value = res.data || []
   } catch (error) {
     console.error('获取教学班列表失败:', error)
