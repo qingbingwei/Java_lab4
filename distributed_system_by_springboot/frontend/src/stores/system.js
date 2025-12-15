@@ -29,8 +29,8 @@ export const useSystemStore = defineStore('system', () => {
     try {
       isLoading.value = true
       const userStore = useUserStore()
-      // 教师只获取自己教学班的统计数据
-      const params = userStore.isTeacher ? { teacherDbId: userStore.refId } : {}
+      // 教师只获取自己教学班的统计数据，管理员获取全局数据
+      const params = (userStore.isTeacher && !userStore.isAdmin) ? { teacherDbId: userStore.refId } : {}
       const res = await statisticsApi.getOverview(params)
       if (res.data) {
         overview.value = res.data
