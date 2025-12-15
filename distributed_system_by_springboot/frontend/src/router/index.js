@@ -77,7 +77,7 @@ const routes = [
         path: '/enrollment',
         name: 'Enrollment',
         component: () => import('@/views/enrollment/EnrollmentView.vue'),
-        meta: { title: '选课管理', icon: 'List', permission: 'enrollment' }
+        meta: { title: '选课管理', icon: 'List', permission: 'enrollment', roles: ['ADMIN'] }
       },
       {
         path: '/my-scores',
