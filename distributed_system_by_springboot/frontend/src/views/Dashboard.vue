@@ -11,7 +11,7 @@
         <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)">
           <div class="stat-content">
             <div class="stat-label">学生总数</div>
-            <div class="stat-value">{{ systemStore.studentCount }}</div>
+            <div class="stat-value">{{ systemStore.overview.studentCount || 0 }}</div>
             <div class="stat-desc">已注册学生</div>
           </div>
           <el-icon class="stat-icon"><User /></el-icon>
@@ -22,7 +22,7 @@
         <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%)">
           <div class="stat-content">
             <div class="stat-label">教师总数</div>
-            <div class="stat-value">{{ systemStore.teacherCount }}</div>
+            <div class="stat-value">{{ systemStore.overview.teacherCount || 0 }}</div>
             <div class="stat-desc">在职教师</div>
           </div>
           <el-icon class="stat-icon"><UserFilled /></el-icon>
@@ -33,7 +33,7 @@
         <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)">
           <div class="stat-content">
             <div class="stat-label">课程总数</div>
-            <div class="stat-value">{{ systemStore.courseCount }}</div>
+            <div class="stat-value">{{ systemStore.overview.courseCount || 0 }}</div>
             <div class="stat-desc">开设课程</div>
           </div>
           <el-icon class="stat-icon"><Reading /></el-icon>
@@ -44,7 +44,7 @@
         <div class="stat-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)">
           <div class="stat-content">
             <div class="stat-label">教学班数</div>
-            <div class="stat-value">{{ systemStore.classCount }}</div>
+            <div class="stat-value">{{ systemStore.overview.teachingClassCount || systemStore.overview.classCount || 0 }}</div>
             <div class="stat-desc">活跃班级</div>
           </div>
           <el-icon class="stat-icon"><School /></el-icon>
