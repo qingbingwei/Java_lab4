@@ -55,30 +55,47 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
+import { useUserStore } from '@/stores/user'
 import { scoreApi, teachingClassApi } from '@/api'
 import { getScoreClass } from '@/utils'
 import { TrendCharts } from '@element-plus/icons-vue'
 
+const userStore = useUserStore()
 const loading = ref(false)
 const rankingList = ref([])
 const classList = ref([])
 
 const queryParams = reactive({
   teachingClassDbId: '',
-  semester: ''
+  semester: '',
+  teacherDbId: null
 })
 
 const loadData = async () => {
   loading.value = true
   try {
-    const res = await scoreApi.getRanking(queryParams)
+    const params = { ...queryParams }
+    // 教师只查自己教学班的排名
+    if (userStore.isTeacher) {
+      params.teacherDbId = userStore.refId
+    }
+    const res = await scoreApi.getRanking(params)
     rankingList.value = res.data || []
   } finally { loading.value = false }
 }
 
 const loadClasses = async () => {
-  const res = await teachingClassApi.getList()
-  classList.value = res.data || []
+  // 教师只获取自己的教学班
+  if (userStore.isTeacher) {
+    const teacherId = userStore.businessId
+    if (teacherId) {
+      const res = await teachingClassApi.getTeacherClasses(teacherId)
+      classList.value = res.data || []
+    }
+  } else {
+    const res = await teachingClassApi.getList()
+    classList.value = res.data || []
+  }
 }
 
 onMounted(() => {

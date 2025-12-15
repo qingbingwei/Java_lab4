@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { statisticsApi } from '@/api'
 import { storage } from '@/utils'
+import { useUserStore } from './user'
 
 export const useSystemStore = defineStore('system', () => {
   // 状态
@@ -27,7 +28,10 @@ export const useSystemStore = defineStore('system', () => {
   const loadOverview = async () => {
     try {
       isLoading.value = true
-      const res = await statisticsApi.getOverview()
+      const userStore = useUserStore()
+      // 教师只获取自己教学班的统计数据
+      const params = userStore.isTeacher ? { teacherDbId: userStore.refId } : {}
+      const res = await statisticsApi.getOverview(params)
       if (res.data) {
         overview.value = res.data
       }

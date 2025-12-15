@@ -113,8 +113,9 @@ public class ScoreController {
     @GetMapping("/ranking")
     public Result<List<ScoreVO>> getRankingAll(
             @Parameter(description = "教学班数据库ID") @RequestParam(required = false) Long teachingClassDbId,
-            @Parameter(description = "学期") @RequestParam(required = false) String semester) {
-        return Result.success(scoreService.getRankingAll(teachingClassDbId, semester));
+            @Parameter(description = "学期") @RequestParam(required = false) String semester,
+            @Parameter(description = "教师数据库ID（教师只看自己教学班的成绩排名）") @RequestParam(required = false) Long teacherDbId) {
+        return Result.success(scoreService.getRankingAll(teachingClassDbId, semester, teacherDbId));
     }
     
     @Operation(summary = "获取班级成绩排名")
