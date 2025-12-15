@@ -28,7 +28,11 @@ public class StatisticsController {
     
     @Operation(summary = "获取系统概览统计")
     @GetMapping("/overview")
-    public Result<StatisticsVO> getOverview() {
+    public Result<StatisticsVO> getOverview(
+            @Parameter(description = "教师数据库ID（教师只统计自己的教学班）") @RequestParam(required = false) Long teacherDbId) {
+        if (teacherDbId != null) {
+            return Result.success(statisticsService.getOverviewByTeacher(teacherDbId));
+        }
         return Result.success(statisticsService.getOverview());
     }
     
@@ -77,8 +81,14 @@ public class StatisticsController {
     
     @Operation(summary = "获取成绩分布（前端统计页面用）")
     @GetMapping("/score-distribution")
-    public Result<Map<String, Object>> getScoreDistributionForFrontend() {
-        List<Integer> distribution = statisticsService.getScoreDistribution();
+    public Result<Map<String, Object>> getScoreDistributionForFrontend(
+            @Parameter(description = "教师数据库ID（教师只统计自己的教学班）") @RequestParam(required = false) Long teacherDbId) {
+        List<Integer> distribution;
+        if (teacherDbId != null) {
+            distribution = statisticsService.getScoreDistributionByTeacher(teacherDbId);
+        } else {
+            distribution = statisticsService.getScoreDistribution();
+        }
         Map<String, Object> result = new HashMap<>();
         Map<String, Integer> distMap = new HashMap<>();
         // distribution 返回5个等级的人数: [<60, 60-69, 70-79, 80-89, 90-100]
@@ -95,8 +105,14 @@ public class StatisticsController {
     
     @Operation(summary = "获取课程平均分（前端统计页面用）")
     @GetMapping("/course-average")
-    public Result<Map<String, Object>> getCourseAverageForFrontend() {
-        List<CourseStatisticsVO> courses = statisticsService.getCourseStatistics();
+    public Result<Map<String, Object>> getCourseAverageForFrontend(
+            @Parameter(description = "教师数据库ID（教师只统计自己的教学班）") @RequestParam(required = false) Long teacherDbId) {
+        List<CourseStatisticsVO> courses;
+        if (teacherDbId != null) {
+            courses = statisticsService.getCourseStatisticsByTeacher(teacherDbId);
+        } else {
+            courses = statisticsService.getCourseStatistics();
+        }
         Map<String, Object> result = new HashMap<>();
         result.put("details", courses);
         return Result.success(result);
@@ -104,8 +120,14 @@ public class StatisticsController {
     
     @Operation(summary = "获取班级对比（前端统计页面用）")
     @GetMapping("/class-comparison")
-    public Result<Map<String, Object>> getClassComparisonForFrontend() {
-        List<ClassStatisticsVO> classes = statisticsService.getClassStatistics();
+    public Result<Map<String, Object>> getClassComparisonForFrontend(
+            @Parameter(description = "教师数据库ID（教师只统计自己的教学班）") @RequestParam(required = false) Long teacherDbId) {
+        List<ClassStatisticsVO> classes;
+        if (teacherDbId != null) {
+            classes = statisticsService.getClassStatisticsByTeacher(teacherDbId);
+        } else {
+            classes = statisticsService.getClassStatistics();
+        }
         Map<String, Object> result = new HashMap<>();
         result.put("labels", classes.stream().map(ClassStatisticsVO::getClassName).toList());
         result.put("avgScores", classes.stream().map(c -> c.getAverageScore() != null ? c.getAverageScore().doubleValue() : 0.0).toList());

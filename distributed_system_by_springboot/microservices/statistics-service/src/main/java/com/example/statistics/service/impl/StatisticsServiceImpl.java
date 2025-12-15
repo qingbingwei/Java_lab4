@@ -84,6 +84,92 @@ public class StatisticsServiceImpl implements StatisticsService {
     }
     
     @Override
+    public StatisticsVO getOverviewByTeacher(Long teacherDbId) {
+        StatisticsVO vo = new StatisticsVO();
+        
+        // 查询该教师的所有教学班
+        LambdaQueryWrapper<TeachingClass> tcWrapper = new LambdaQueryWrapper<>();
+        tcWrapper.eq(TeachingClass::getTeacherDbId, teacherDbId);
+        List<TeachingClass> teacherClasses = teachingClassMapper.selectList(tcWrapper);
+        
+        if (teacherClasses.isEmpty()) {
+            vo.setStudentCount(0L);
+            vo.setTeacherCount(1L);
+            vo.setCourseCount(0L);
+            vo.setTeachingClassCount(0L);
+            vo.setEnrollmentCount(0L);
+            vo.setScoreCount(0L);
+            vo.setAverageScore(BigDecimal.ZERO);
+            vo.setPassRate(BigDecimal.ZERO);
+            vo.setExcellentRate(BigDecimal.ZERO);
+            return vo;
+        }
+        
+        List<Long> classDbIds = teacherClasses.stream().map(TeachingClass::getId).toList();
+        
+        // 统计该教师的教学班数
+        vo.setTeachingClassCount((long) teacherClasses.size());
+        
+        // 统计相关课程数（去重）
+        Set<Long> courseDbIds = teacherClasses.stream().map(TeachingClass::getCourseDbId).collect(Collectors.toSet());
+        vo.setCourseCount((long) courseDbIds.size());
+        
+        // 统计选课人数
+        LambdaQueryWrapper<Enrollment> enrollmentWrapper = new LambdaQueryWrapper<>();
+        enrollmentWrapper.in(Enrollment::getTeachingClassDbId, classDbIds);
+        long enrollmentCount = enrollmentMapper.selectCount(enrollmentWrapper);
+        vo.setEnrollmentCount(enrollmentCount);
+        
+        // 统计学生人数（去重）
+        List<Enrollment> enrollments = enrollmentMapper.selectList(enrollmentWrapper);
+        Set<Long> studentDbIds = enrollments.stream().map(Enrollment::getStudentDbId).collect(Collectors.toSet());
+        vo.setStudentCount((long) studentDbIds.size());
+        
+        vo.setTeacherCount(1L);
+        
+        // 统计成绩
+        LambdaQueryWrapper<Score> scoreWrapper = new LambdaQueryWrapper<>();
+        scoreWrapper.in(Score::getTeachingClassDbId, classDbIds);
+        List<Score> scores = scoreMapper.selectList(scoreWrapper);
+        vo.setScoreCount((long) scores.size());
+        
+        if (!scores.isEmpty()) {
+            List<BigDecimal> finalScores = scores.stream()
+                    .filter(s -> s.getFinalScore() != null)
+                    .map(Score::getFinalScore)
+                    .collect(Collectors.toList());
+            
+            if (!finalScores.isEmpty()) {
+                BigDecimal totalScore = finalScores.stream()
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+                vo.setAverageScore(totalScore.divide(BigDecimal.valueOf(finalScores.size()), 2, RoundingMode.HALF_UP));
+                
+                long passCount = finalScores.stream()
+                        .filter(s -> s.compareTo(BigDecimal.valueOf(60)) >= 0)
+                        .count();
+                vo.setPassRate(BigDecimal.valueOf(passCount * 100.0 / finalScores.size())
+                        .setScale(2, RoundingMode.HALF_UP));
+                
+                long excellentCount = finalScores.stream()
+                        .filter(s -> s.compareTo(BigDecimal.valueOf(90)) >= 0)
+                        .count();
+                vo.setExcellentRate(BigDecimal.valueOf(excellentCount * 100.0 / finalScores.size())
+                        .setScale(2, RoundingMode.HALF_UP));
+            } else {
+                vo.setAverageScore(BigDecimal.ZERO);
+                vo.setPassRate(BigDecimal.ZERO);
+                vo.setExcellentRate(BigDecimal.ZERO);
+            }
+        } else {
+            vo.setAverageScore(BigDecimal.ZERO);
+            vo.setPassRate(BigDecimal.ZERO);
+            vo.setExcellentRate(BigDecimal.ZERO);
+        }
+        
+        return vo;
+    }
+    
+    @Override
     public List<CourseStatisticsVO> getCourseStatistics() {
         List<Course> courses = courseMapper.selectList(null);
         List<CourseStatisticsVO> result = new ArrayList<>();
@@ -99,11 +185,101 @@ public class StatisticsServiceImpl implements StatisticsService {
     }
     
     @Override
+    public List<CourseStatisticsVO> getCourseStatisticsByTeacher(Long teacherDbId) {
+        // 查询该教师的所有教学班
+        LambdaQueryWrapper<TeachingClass> tcWrapper = new LambdaQueryWrapper<>();
+        tcWrapper.eq(TeachingClass::getTeacherDbId, teacherDbId);
+        List<TeachingClass> teacherClasses = teachingClassMapper.selectList(tcWrapper);
+        
+        if (teacherClasses.isEmpty()) {
+            return new ArrayList<>();
+        }
+        
+        // 获取该教师教的所有课程（去重）
+        Set<Long> courseDbIds = teacherClasses.stream().map(TeachingClass::getCourseDbId).collect(Collectors.toSet());
+        
+        List<CourseStatisticsVO> result = new ArrayList<>();
+        for (Long courseDbId : courseDbIds) {
+            Course course = courseMapper.selectById(courseDbId);
+            if (course == null) continue;
+            
+            CourseStatisticsVO vo = new CourseStatisticsVO();
+            vo.setCourseId(course.getCourseId());
+            vo.setCourseName(course.getCourseName());
+            
+            // 只统计该教师在该课程的教学班
+            List<TeachingClass> courseTeacherClasses = teacherClasses.stream()
+                    .filter(tc -> tc.getCourseDbId().equals(courseDbId))
+                    .toList();
+            
+            long totalEnrollment = 0;
+            List<BigDecimal> allScores = new ArrayList<>();
+            
+            for (TeachingClass tc : courseTeacherClasses) {
+                LambdaQueryWrapper<Enrollment> enrollmentWrapper = new LambdaQueryWrapper<>();
+                enrollmentWrapper.eq(Enrollment::getTeachingClassDbId, tc.getId());
+                totalEnrollment += enrollmentMapper.selectCount(enrollmentWrapper);
+                
+                LambdaQueryWrapper<Score> scoreWrapper = new LambdaQueryWrapper<>();
+                scoreWrapper.eq(Score::getTeachingClassDbId, tc.getId());
+                List<Score> scores = scoreMapper.selectList(scoreWrapper);
+                for (Score score : scores) {
+                    if (score.getFinalScore() != null) {
+                        allScores.add(score.getFinalScore());
+                    }
+                }
+            }
+            
+            vo.setStudentCount(totalEnrollment);
+            
+            if (!allScores.isEmpty()) {
+                BigDecimal sum = allScores.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+                BigDecimal max = allScores.stream().max(BigDecimal::compareTo).orElse(BigDecimal.ZERO);
+                BigDecimal min = allScores.stream().min(BigDecimal::compareTo).orElse(BigDecimal.ZERO);
+                long passCount = allScores.stream().filter(s -> s.compareTo(BigDecimal.valueOf(60)) >= 0).count();
+                long excellentCount = allScores.stream().filter(s -> s.compareTo(BigDecimal.valueOf(90)) >= 0).count();
+                
+                vo.setAverageScore(sum.divide(BigDecimal.valueOf(allScores.size()), 2, RoundingMode.HALF_UP));
+                vo.setMaxScore(max);
+                vo.setMinScore(min);
+                vo.setPassCount(passCount);
+                vo.setPassRate(BigDecimal.valueOf(passCount * 100.0 / allScores.size())
+                        .setScale(2, RoundingMode.HALF_UP));
+                vo.setExcellentCount(excellentCount);
+                vo.setExcellentRate(BigDecimal.valueOf(excellentCount * 100.0 / allScores.size())
+                        .setScale(2, RoundingMode.HALF_UP));
+            }
+            
+            result.add(vo);
+        }
+        
+        return result;
+    }
+    
+    @Override
     public List<ClassStatisticsVO> getClassStatistics() {
         List<TeachingClass> teachingClasses = teachingClassMapper.selectList(null);
         List<ClassStatisticsVO> result = new ArrayList<>();
         
         for (TeachingClass tc : teachingClasses) {
+            ClassStatisticsVO vo = getClassStatisticsById(tc.getClassId());
+            if (vo != null) {
+                result.add(vo);
+            }
+        }
+        
+        return result;
+    }
+    
+    @Override
+    public List<ClassStatisticsVO> getClassStatisticsByTeacher(Long teacherDbId) {
+        // 查询该教师的所有教学班
+        LambdaQueryWrapper<TeachingClass> tcWrapper = new LambdaQueryWrapper<>();
+        tcWrapper.eq(TeachingClass::getTeacherDbId, teacherDbId);
+        List<TeachingClass> teacherClasses = teachingClassMapper.selectList(tcWrapper);
+        
+        List<ClassStatisticsVO> result = new ArrayList<>();
+        for (TeachingClass tc : teacherClasses) {
             ClassStatisticsVO vo = getClassStatisticsById(tc.getClassId());
             if (vo != null) {
                 result.add(vo);
@@ -228,6 +404,24 @@ public class StatisticsServiceImpl implements StatisticsService {
     @Override
     public List<Integer> getScoreDistribution() {
         List<Score> scores = scoreMapper.selectList(null);
+        return calculateDistribution(scores);
+    }
+    
+    @Override
+    public List<Integer> getScoreDistributionByTeacher(Long teacherDbId) {
+        // 查询该教师的所有教学班
+        LambdaQueryWrapper<TeachingClass> tcWrapper = new LambdaQueryWrapper<>();
+        tcWrapper.eq(TeachingClass::getTeacherDbId, teacherDbId);
+        List<TeachingClass> teacherClasses = teachingClassMapper.selectList(tcWrapper);
+        
+        if (teacherClasses.isEmpty()) {
+            return List.of(0, 0, 0, 0, 0);
+        }
+        
+        List<Long> classDbIds = teacherClasses.stream().map(TeachingClass::getId).toList();
+        LambdaQueryWrapper<Score> scoreWrapper = new LambdaQueryWrapper<>();
+        scoreWrapper.in(Score::getTeachingClassDbId, classDbIds);
+        List<Score> scores = scoreMapper.selectList(scoreWrapper);
         return calculateDistribution(scores);
     }
     
