@@ -47,8 +47,12 @@ public interface ExcelService {
     
     /**
      * 导出成绩数据
+     * @param classId 教学班编号
+     * @param studentDbId 学生数据库ID（学生只导出自己成绩）
+     * @param teacherDbId 教师数据库ID（教师只导出自己教学班成绩）
+     * @param response HTTP响应
      */
-    void exportScores(String classId, HttpServletResponse response);
+    void exportScores(String classId, Long studentDbId, Long teacherDbId, HttpServletResponse response);
     
     /**
      * 下载导入模板
