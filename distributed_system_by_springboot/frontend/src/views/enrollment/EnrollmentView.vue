@@ -13,7 +13,7 @@
           
           <el-form label-width="80px" v-if="!isStudent">
             <el-form-item label="选择学生">
-              <el-select v-model="selectedStudent" filterable placeholder="搜索选择学生" style="width: 100%" @change="loadStudentEnrollments">
+              <el-select v-model="selectedStudent" filterable placeholder="搜索选择学生" style="width: 100%" @change="onStudentChange">
                 <el-option v-for="s in students" :key="s.id" :label="`${s.studentId} - ${s.name}`" :value="s.id" />
               </el-select>
             </el-form-item>
@@ -97,6 +97,7 @@ const isTeacher = computed(() => userStore.isTeacher)
 const students = ref([])
 const classList = ref([])
 const selectedStudent = ref(null)
+const selectedStudentId = ref(null) // 学号
 const selectedClass = ref(null)
 const studentEnrollments = ref([])
 const classStudents = ref([])
@@ -114,11 +115,15 @@ const isStudent = computed(() => userStore.isStudent)
 const loadStudents = async () => {
   if (isStudent.value) {
     // 学生角色自动加载自己的信息
-    const res = await studentApi.getById(userStore.refId)
-    if (res.data) {
-      students.value = [res.data]
-      selectedStudent.value = res.data.id
-      await loadStudentEnrollments()
+    const studentId = userStore.businessId
+    if (studentId) {
+      const res = await studentApi.getByStudentId(studentId)
+      if (res.data) {
+        students.value = [res.data]
+        selectedStudent.value = res.data.id
+        selectedStudentId.value = res.data.studentId
+        await loadStudentEnrollments()
+      }
     }
   } else {
     const res = await studentApi.getList()
@@ -132,9 +137,23 @@ const loadClasses = async () => {
 }
 
 const loadStudentEnrollments = async () => {
-  if (!selectedStudent.value) return
-  const res = await enrollmentApi.getStudentEnrollments(selectedStudent.value)
+  if (!selectedStudentId.value && !selectedStudent.value) return
+  // 如果有学号就用学号，否则先获取学号
+  let studentId = selectedStudentId.value
+  if (!studentId && selectedStudent.value) {
+    const student = students.value.find(s => s.id === selectedStudent.value)
+    studentId = student?.studentId
+    selectedStudentId.value = studentId
+  }
+  if (!studentId) return
+  const res = await enrollmentApi.getStudentEnrollments(studentId)
   studentEnrollments.value = res.data || []
+}
+
+const onStudentChange = () => {
+  const student = students.value.find(s => s.id === selectedStudent.value)
+  selectedStudentId.value = student?.studentId
+  loadStudentEnrollments()
 }
 
 const loadClassStudents = async () => {
@@ -170,10 +189,10 @@ const handleDrop = async (enrollment) => {
       ElMessage.error('无权限操作')
       return
     }
-    // 使用正确的参数名
+    // 使用正确的参数名: studentId(学号) 和 classId(教学班编号)
     await enrollmentApi.drop({
-      studentDbId: selectedStudent.value,
-      teachingClassDbId: enrollment.teachingClassDbId
+      studentId: enrollment.studentId || selectedStudentId.value,
+      classId: enrollment.classId
     })
     ElMessage.success('退选成功')
     await loadStudentEnrollments()

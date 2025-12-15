@@ -68,7 +68,7 @@
         <el-table-column type="index" label="序号" width="60" />
         <el-table-column prop="courseName" label="课程名称" min-width="150" />
         <el-table-column prop="courseCode" label="课程代码" width="120" />
-        <el-table-column prop="credit" label="学分" width="80" align="center" />
+        <el-table-column prop="credits" label="学分" width="80" align="center" />
         <el-table-column prop="teacherName" label="任课教师" width="100" />
         <el-table-column prop="className" label="教学班" width="120" />
         <el-table-column prop="score" label="成绩" width="100" align="center">
@@ -117,7 +117,7 @@ const highestScore = computed(() => {
 const totalCredits = computed(() => {
   return scoreList.value
     .filter(s => s.score != null && s.score >= 60)
-    .reduce((sum, s) => sum + Number(s.credit || 0), 0)
+    .reduce((sum, s) => sum + Number(s.credits || s.credit || 0), 0)
 })
 
 // 获取成绩等级
@@ -143,8 +143,8 @@ const getScoreTagType = (score) => {
 const loadScores = async () => {
   loading.value = true
   try {
-    // 根据学生ID获取成绩
-    const studentId = userStore.refId
+    // 根据学号获取成绩
+    const studentId = userStore.businessId
     if (!studentId) {
       ElMessage.warning('未找到学生信息')
       return

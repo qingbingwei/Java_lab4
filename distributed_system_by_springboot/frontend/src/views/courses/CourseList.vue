@@ -88,9 +88,11 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { courseApi } from '@/api'
+import { useSystemStore } from '@/stores/system'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Reading, Search, Plus } from '@element-plus/icons-vue'
 
+const systemStore = useSystemStore()
 const loading = ref(false)
 const courseList = ref([])
 const total = ref(0)
@@ -135,6 +137,7 @@ const handleDelete = async (row) => {
     await courseApi.delete(row.id)
     ElMessage.success('删除成功')
     loadData()
+    systemStore.loadOverview() // 刷新首页概览数据
   } catch {}
 }
 
@@ -146,6 +149,7 @@ const handleSubmit = async () => {
       // 新增时，创建一个不包含id的副本
       const { id, ...formData } = form
       await courseApi.create(formData)
+      systemStore.loadOverview() // 刷新首页概览数据
     }
     ElMessage.success(isEdit.value ? '更新成功' : '新增成功')
     dialogVisible.value = false

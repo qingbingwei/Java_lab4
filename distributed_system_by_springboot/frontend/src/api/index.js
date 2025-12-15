@@ -318,7 +318,7 @@ export const enrollmentApi = {
   // 学生退课
   drop(params) {
     return request({
-      url: '/enrollments',
+      url: '/enrollments/cancel',
       method: 'delete',
       params
     })
@@ -397,14 +397,14 @@ export const statisticsApi = {
 export const excelApi = {
   // 导出学生
   exportStudents(params) {
-    return `/api/excel/students/export?${new URLSearchParams(params).toString()}`
+    return `/api/excel/export/students?${new URLSearchParams(params).toString()}`
   },
   // 导入学生
   importStudents(file) {
     const formData = new FormData()
     formData.append('file', file)
     return request({
-      url: '/excel/students/import',
+      url: '/excel/import/students',
       method: 'post',
       data: formData,
       headers: { 'Content-Type': 'multipart/form-data' }
@@ -412,18 +412,18 @@ export const excelApi = {
   },
   // 下载学生模板
   downloadStudentTemplate() {
-    return '/api/excel/students/template'
+    return '/api/excel/template/student'
   },
   // 导出成绩
   exportScores(params) {
-    return `/api/excel/scores/export?${new URLSearchParams(params).toString()}`
+    return `/api/excel/export/scores?${new URLSearchParams(params).toString()}`
   },
   // 导入成绩
   importScores(file) {
     const formData = new FormData()
     formData.append('file', file)
     return request({
-      url: '/excel/scores/import',
+      url: '/excel/import/scores',
       method: 'post',
       data: formData,
       headers: { 'Content-Type': 'multipart/form-data' }
@@ -431,7 +431,7 @@ export const excelApi = {
   },
   // 下载成绩模板
   downloadScoreTemplate() {
-    return '/api/excel/scores/template'
+    return '/api/excel/template/score'
   }
 }
 

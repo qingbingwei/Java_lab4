@@ -15,6 +15,9 @@ export const useUserStore = defineStore('user', () => {
   const realName = computed(() => userInfo.value?.realName || '')
   const username = computed(() => userInfo.value?.username || '')
   const refId = computed(() => userInfo.value?.refId || null)
+  // businessId优先，如果没有则学生使用username（学号），教师使用username（工号）
+  const businessId = computed(() => userInfo.value?.businessId || 
+    (userInfo.value?.role === 'STUDENT' || userInfo.value?.role === 'TEACHER' ? userInfo.value?.username : null))
 
   // 角色判断
   const isAdmin = computed(() => role.value === 'ADMIN')
@@ -33,6 +36,7 @@ export const useUserStore = defineStore('user', () => {
       realName: data.realName,
       role: data.role,
       refId: data.refId,
+      businessId: data.businessId,
       permissions: data.permissions
     }
     
@@ -94,6 +98,7 @@ export const useUserStore = defineStore('user', () => {
     realName,
     username,
     refId,
+    businessId,
     isAdmin,
     isTeacher,
     isStudent,

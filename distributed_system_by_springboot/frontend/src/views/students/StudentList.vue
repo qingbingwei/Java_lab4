@@ -113,10 +113,12 @@
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { studentApi, excelApi } from '@/api'
+import { useSystemStore } from '@/stores/system'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { User, Search, Download, Plus } from '@element-plus/icons-vue'
 
 const router = useRouter()
+const systemStore = useSystemStore()
 
 const loading = ref(false)
 const studentList = ref([])
@@ -206,6 +208,7 @@ const handleDelete = async (row) => {
     await studentApi.delete(row.id)
     ElMessage.success('删除成功')
     loadData()
+    systemStore.loadOverview() // 刷新首页概览数据
   } catch (error) {
     if (error !== 'cancel') {
       console.error('删除失败:', error)
@@ -225,6 +228,7 @@ const handleSubmit = async () => {
       const { id, ...formData } = form
       await studentApi.create(formData)
       ElMessage.success('新增成功')
+      systemStore.loadOverview() // 刷新首页概览数据
     }
     dialogVisible.value = false
     loadData()
