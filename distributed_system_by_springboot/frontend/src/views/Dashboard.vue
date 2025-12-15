@@ -153,7 +153,7 @@
             </div>
             <div class="info-item">
               <span class="info-label">平均分</span>
-              <span class="info-value">{{ systemStore.overview.avgScore?.toFixed(2) || '-' }}</span>
+              <span class="info-value">{{ systemStore.overview.averageScore?.toFixed(2) || systemStore.overview.avgScore?.toFixed(2) || '-' }}</span>
             </div>
             <div class="info-item">
               <span class="info-label">及格率</span>
@@ -251,26 +251,29 @@ const studentStats = ref({
 const loadStudentStats = async () => {
   if (userStore.isStudent) {
     try {
+      // 获取学号
+      const studentId = userStore.businessId
+      if (!studentId) {
+        console.warn('未找到学号')
+        return
+      }
+
       // 获取学生选课数量
-      const enrollRes = await enrollmentApi.getStudentEnrollments(userStore.refId)
+      const enrollRes = await enrollmentApi.getStudentEnrollments(studentId)
       studentStats.value.courseCount = enrollRes.data?.length || 0
 
       // 获取学生成绩统计
-      const scoreRes = await scoreApi.getPage({
-        current: 1,
-        size: 1000,
-        studentDbId: userStore.refId
-      })
-      const scores = scoreRes.data?.records || []
+      const scoreRes = await scoreApi.getStudentScores(studentId)
+      const scores = scoreRes.data || []
       
       if (scores.length > 0) {
         // 计算平均分
-        const validScores = scores.filter(s => s.finalScore != null)
+        const validScores = scores.filter(s => s.score != null)
         if (validScores.length > 0) {
-          const sum = validScores.reduce((acc, s) => acc + s.finalScore, 0)
+          const sum = validScores.reduce((acc, s) => acc + s.score, 0)
           studentStats.value.avgScore = sum / validScores.length
-          studentStats.value.passCount = validScores.filter(s => s.finalScore >= 60).length
-          studentStats.value.excellentCount = validScores.filter(s => s.finalScore >= 90).length
+          studentStats.value.passCount = validScores.filter(s => s.score >= 60).length
+          studentStats.value.excellentCount = validScores.filter(s => s.score >= 90).length
         }
       }
     } catch (error) {

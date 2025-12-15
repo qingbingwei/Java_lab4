@@ -1,0 +1,117 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: gateway
+  cloud:
+    gateway:
+      # 全局跨域配置
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOriginPatterns: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
+            maxAge: 3600
+      
+      # 路由配置 - 路由到各个微服务
+      routes:
+        # 认证服务
+        - id: auth-service
+          uri: http://localhost:8081
+          predicates:
+            - Path=/api/auth/**
+          filters:
+            - StripPrefix=1
+
+        # 学生服务
+        - id: student-service
+          uri: http://localhost:8082
+          predicates:
+            - Path=/api/students/**
+          filters:
+            - StripPrefix=1
+
+        # 教师服务
+        - id: teacher-service
+          uri: http://localhost:8083
+          predicates:
+            - Path=/api/teachers/**
+          filters:
+            - StripPrefix=1
+
+        # 课程服务（包含课程、教学班、选课）
+        - id: course-service-courses
+          uri: http://localhost:8084
+          predicates:
+            - Path=/api/courses/**
+          filters:
+            - StripPrefix=1
+
+        - id: course-service-teaching-classes
+          uri: http://localhost:8084
+          predicates:
+            - Path=/api/teaching-classes/**
+          filters:
+            - StripPrefix=1
+
+        - id: course-service-enrollments
+          uri: http://localhost:8084
+          predicates:
+            - Path=/api/enrollments/**
+          filters:
+            - StripPrefix=1
+
+        # 成绩服务
+        - id: score-service
+          uri: http://localhost:8085
+          predicates:
+            - Path=/api/scores/**
+          filters:
+            - StripPrefix=1
+
+        # 统计服务
+        - id: statistics-service
+          uri: http://localhost:8086
+          predicates:
+            - Path=/api/statistics/**
+          filters:
+            - StripPrefix=1
+
+        # 文件服务（包含文件上传下载、Excel导入导出）
+        - id: file-service-files
+          uri: http://localhost:8087
+          predicates:
+            - Path=/api/files/**
+          filters:
+            - StripPrefix=1
+
+        - id: file-service-excel
+          uri: http://localhost:8087
+          predicates:
+            - Path=/api/excel/**
+          filters:
+            - StripPrefix=1
+
+# 日志配置
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    reactor.netty: INFO
+
+# 管理端点
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always

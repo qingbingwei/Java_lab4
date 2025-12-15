@@ -31,10 +31,11 @@
         </el-table-column>
         <el-table-column prop="scheduleTime" label="上课时间" width="120" />
         <el-table-column prop="classroom" label="上课地点" width="120" />
-        <el-table-column label="操作" width="180" fixed="right">
+        <el-table-column label="操作" width="220" fixed="right">
           <template #default="{ row }">
             <el-button type="primary" size="small" link @click="viewStudents(row)">学生名单</el-button>
             <el-button type="primary" size="small" link @click="handleEdit(row)">编辑</el-button>
+            <el-button type="danger" size="small" link @click="handleDelete(row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -103,9 +104,11 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { teachingClassApi, courseApi, teacherApi } from '@/api'
-import { ElMessage } from 'element-plus'
+import { useSystemStore } from '@/stores/system'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { School, Search, Plus } from '@element-plus/icons-vue'
 
+const systemStore = useSystemStore()
 const loading = ref(false)
 const classList = ref([])
 const total = ref(0)
@@ -165,6 +168,16 @@ const handleEdit = (row) => {
   dialogVisible.value = true
 }
 
+const handleDelete = async (row) => {
+  try {
+    await ElMessageBox.confirm(`确定删除教学班"${row.classId}"？此操作将删除相关的选课和成绩记录！`, '确认', { type: 'warning' })
+    await teachingClassApi.delete(row.id)
+    ElMessage.success('删除成功')
+    loadData()
+    systemStore.loadOverview() // 刷新首页概览数据
+  } catch {}
+}
+
 const handleSubmit = async () => {
   try {
     await formRef.value.validate()
@@ -173,6 +186,7 @@ const handleSubmit = async () => {
       // 新增时，创建一个不包含id的副本
       const { id, ...formData } = form
       await teachingClassApi.create(formData)
+      systemStore.loadOverview() // 刷新首页概览数据
     }
     ElMessage.success(isEdit.value ? '更新成功' : '新增成功')
     dialogVisible.value = false

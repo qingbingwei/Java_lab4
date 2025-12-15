@@ -38,8 +38,8 @@
             <el-table-column prop="schedule" label="上课时间" width="150" />
             <el-table-column prop="status" label="状态" width="100" align="center">
               <template #default="{ row }">
-                <el-tag :type="getStatusType(row.status)">
-                  {{ getStatusText(row.status) }}
+                <el-tag :type="getStatusType(row.status || 'ENROLLED')">
+                  {{ getStatusText(row.status || 'ENROLLED') }}
                 </el-tag>
               </template>
             </el-table-column>
@@ -137,7 +137,7 @@ const completedCredits = computed(() => {
 
 const pendingCredits = computed(() => {
   return enrolledCourses.value
-    .filter(c => c.status === 'PENDING' || c.status === 'IN_PROGRESS' || c.status === 'ENROLLED')
+    .filter(c => !c.status || c.status === 'PENDING' || c.status === 'IN_PROGRESS' || c.status === 'ENROLLED')
     .reduce((sum, c) => sum + Number(c.credit || 0), 0)
 })
 
@@ -159,29 +159,31 @@ const getTypePercentage = (count) => {
 // 状态相关
 const getStatusType = (status) => {
   const map = {
+    'ENROLLED': 'success',
     'PENDING': 'warning',
     'IN_PROGRESS': 'primary',
     'COMPLETED': 'success',
     'WITHDRAWN': 'info'
   }
-  return map[status] || 'info'
+  return map[status] || 'success'
 }
 
 const getStatusText = (status) => {
   const map = {
+    'ENROLLED': '已选课',
     'PENDING': '待开课',
     'IN_PROGRESS': '进行中',
     'COMPLETED': '已完成',
     'WITHDRAWN': '已退选'
   }
-  return map[status] || status
+  return map[status] || '已选课'
 }
 
 // 加载已选课程
 const loadEnrolledCourses = async () => {
   loading.value = true
   try {
-    const studentId = userStore.refId
+    const studentId = userStore.businessId
     if (!studentId) {
       ElMessage.warning('未找到学生信息')
       return
