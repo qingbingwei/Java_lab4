@@ -5,8 +5,8 @@
       <span>首页概览</span>
     </div>
 
-    <!-- 统计卡片 - 学生角色只显示自己相关的数据 -->
-    <el-row v-if="!userStore.isStudent" :gutter="24" class="stat-cards">
+    <!-- 统计卡片 - 管理员显示全局数据 -->
+    <el-row v-if="userStore.isAdmin" :gutter="24" class="stat-cards">
       <el-col :xs="24" :sm="12" :md="6">
         <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)">
           <div class="stat-content">
@@ -46,6 +46,53 @@
             <div class="stat-label">教学班数</div>
             <div class="stat-value">{{ systemStore.classCount }}</div>
             <div class="stat-desc">活跃班级</div>
+          </div>
+          <el-icon class="stat-icon"><School /></el-icon>
+        </div>
+      </el-col>
+    </el-row>
+
+    <!-- 教师角色专用统计卡片 -->
+    <el-row v-else-if="userStore.isTeacher" :gutter="24" class="stat-cards">
+      <el-col :xs="24" :sm="12" :md="6">
+        <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)">
+          <div class="stat-content">
+            <div class="stat-label">我的学生</div>
+            <div class="stat-value">{{ systemStore.overview.studentCount || 0 }}</div>
+            <div class="stat-desc">选课学生数</div>
+          </div>
+          <el-icon class="stat-icon"><User /></el-icon>
+        </div>
+      </el-col>
+
+      <el-col :xs="24" :sm="12" :md="6">
+        <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%)">
+          <div class="stat-content">
+            <div class="stat-label">成绩记录</div>
+            <div class="stat-value">{{ systemStore.overview.scoreCount || 0 }}</div>
+            <div class="stat-desc">已录入成绩</div>
+          </div>
+          <el-icon class="stat-icon"><Document /></el-icon>
+        </div>
+      </el-col>
+
+      <el-col :xs="24" :sm="12" :md="6">
+        <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)">
+          <div class="stat-content">
+            <div class="stat-label">我的课程</div>
+            <div class="stat-value">{{ systemStore.overview.courseCount || 0 }}</div>
+            <div class="stat-desc">教授课程数</div>
+          </div>
+          <el-icon class="stat-icon"><Reading /></el-icon>
+        </div>
+      </el-col>
+
+      <el-col :xs="24" :sm="12" :md="6">
+        <div class="stat-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)">
+          <div class="stat-content">
+            <div class="stat-label">我的教学班</div>
+            <div class="stat-value">{{ systemStore.overview.teachingClassCount || 0 }}</div>
+            <div class="stat-desc">负责班级数</div>
           </div>
           <el-icon class="stat-icon"><School /></el-icon>
         </div>
@@ -232,7 +279,8 @@ import {
   DocumentChecked,
   TrendCharts,
   CircleCheck,
-  Medal
+  Medal,
+  Document
 } from '@element-plus/icons-vue'
 
 const router = useRouter()

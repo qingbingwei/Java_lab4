@@ -86,7 +86,7 @@ public interface ScoreService {
     /**
      * 获取成绩排名（支持可选筛选条件）
      */
-    List<ScoreVO> getRankingAll(Long teachingClassDbId, String semester);
+    List<ScoreVO> getRankingAll(Long teachingClassDbId, String semester, Long teacherDbId);
     
     /**
      * 获取学生综合排名

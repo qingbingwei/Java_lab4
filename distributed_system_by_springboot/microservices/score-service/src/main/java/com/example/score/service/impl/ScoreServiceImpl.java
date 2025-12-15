@@ -307,12 +307,25 @@ public class ScoreServiceImpl implements ScoreService {
     }
     
     @Override
-    public List<ScoreVO> getRankingAll(Long teachingClassDbId, String semester) {
+    public List<ScoreVO> getRankingAll(Long teachingClassDbId, String semester, Long teacherDbId) {
         LambdaQueryWrapper<Score> wrapper = new LambdaQueryWrapper<>();
         
         // 如果指定了教学班ID，按教学班过滤
         if (teachingClassDbId != null) {
             wrapper.eq(Score::getTeachingClassDbId, teachingClassDbId);
+        }
+        
+        // 如果指定了教师ID，只显示该教师教学班的成绩
+        if (teacherDbId != null) {
+            LambdaQueryWrapper<TeachingClass> teacherTcWrapper = new LambdaQueryWrapper<>();
+            teacherTcWrapper.eq(TeachingClass::getTeacherDbId, teacherDbId);
+            List<TeachingClass> teacherClasses = teachingClassMapper.selectList(teacherTcWrapper);
+            if (!teacherClasses.isEmpty()) {
+                List<Long> classDbIds = teacherClasses.stream().map(TeachingClass::getId).toList();
+                wrapper.in(Score::getTeachingClassDbId, classDbIds);
+            } else {
+                return new ArrayList<>();
+            }
         }
         
         // 如果指定了学期，需要通过教学班过滤
