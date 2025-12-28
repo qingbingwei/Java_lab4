@@ -98,22 +98,24 @@ public class StatisticsServiceImpl implements StatisticsService {
 
         // 分数段统计 - 使用前端期望的key格式
         Map<String, Object> distribution = new LinkedHashMap<>();
-        distribution.put("90-100", filtered.stream().filter(s -> s.getFinalScore().doubleValue() >= 90).count());
-        distribution.put("80-89", filtered.stream().filter(s -> s.getFinalScore().doubleValue() >= 80 && s.getFinalScore().doubleValue() < 90).count());
-        distribution.put("70-79", filtered.stream().filter(s -> s.getFinalScore().doubleValue() >= 70 && s.getFinalScore().doubleValue() < 80).count());
-        distribution.put("60-69", filtered.stream().filter(s -> s.getFinalScore().doubleValue() >= 60 && s.getFinalScore().doubleValue() < 70).count());
-        distribution.put("0-59", filtered.stream().filter(s -> s.getFinalScore().doubleValue() < 60).count());
+        distribution.put("优秀(90-100)", filtered.stream().filter(s -> s.getFinalScore().doubleValue() >= 90).count());
+        distribution.put("良好(80-89)", filtered.stream().filter(s -> s.getFinalScore().doubleValue() >= 80 && s.getFinalScore().doubleValue() < 90).count());
+        distribution.put("中等(70-79)", filtered.stream().filter(s -> s.getFinalScore().doubleValue() >= 70 && s.getFinalScore().doubleValue() < 80).count());
+        distribution.put("及格(60-69)", filtered.stream().filter(s -> s.getFinalScore().doubleValue() >= 60 && s.getFinalScore().doubleValue() < 70).count());
+        distribution.put("不及格(<60)", filtered.stream().filter(s -> s.getFinalScore().doubleValue() < 60).count());
 
-        return distribution;
+        Map<String, Object> result = new HashMap<>();
+        result.put("distribution", distribution);
+        return result;
     }
 
     @Override
     public Map<String, Object> getCourseAverageScores(String semester) {
         List<CourseStatisticsVO> courseStats = scoreService.getCourseStatistics(semester);
 
-        // 直接返回课程统计列表，前端会自己提取需要的字段
+        // 返回details字段以匹配前端期望
         Map<String, Object> result = new HashMap<>();
-        result.put("data", courseStats);
+        result.put("details", courseStats);
 
         return result;
     }
@@ -198,8 +200,21 @@ public class StatisticsServiceImpl implements StatisticsService {
         // 按班级名称排序
         classStats.sort(Comparator.comparing(ClassStatisticsVO::getClassName));
 
+        // 提取数据为前端期望的格式
+        List<String> labels = classStats.stream()
+                .map(ClassStatisticsVO::getClassName)
+                .toList();
+        List<Double> avgScores = classStats.stream()
+                .map(vo -> vo.getAvgScore().doubleValue())
+                .toList();
+        List<Double> passRates = classStats.stream()
+                .map(vo -> vo.getPassRate().doubleValue())
+                .toList();
+
         Map<String, Object> result = new HashMap<>();
-        result.put("data", classStats);
+        result.put("labels", labels);
+        result.put("avgScores", avgScores);
+        result.put("passRates", passRates);
 
         return result;
     }

@@ -81,7 +81,7 @@ const loadOverview = async () => {
   const data = res.data || {}
   overview.value = {
     scoreCount: data.scoreCount || 0,
-    avgScore: data.averageScore || 0,
+    averageScore: data.averageScore || 0,
     passRate: data.passRate || 0,
     excellentRate: data.excellentRate || 0
   }
